@@ -1712,6 +1712,16 @@ h4 {
   width: calc(100% - 2rem);
 }
 
+.translated-from {
+  font-size: 0.8em;
+  opacity: 0.7;
+  font-style: italic;
+  display: block;
+  margin-top: 0.25rem;
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
 @media (max-width: 480px) {
   .address-text {
     font-size: 0.75rem;
@@ -1999,7 +2009,7 @@ h4 {
   flex-direction: row;
   align-items: center;
   gap: 0.25rem;
-  margin-bottom: 0.25rem; 
+  margin-bottom: 0.25rem;
 }
 
 .tx-field:last-child {
@@ -2007,8 +2017,8 @@ h4 {
 }
 
 .tx-label {
-  font-size: 0.7rem; 
-  color: #94a3b8; 
+  font-size: 0.7rem;
+  color: #94a3b8;
   font-weight: 500;
   width: 3rem;
   flex-shrink: 0;
@@ -2020,11 +2030,11 @@ h4 {
   gap: 0.5rem;
   font-family: monospace;
   word-break: break-all;
-  font-size: 0.75rem; 
+  font-size: 0.75rem;
   flex: 1;
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: var(--border-radius-sm);
-  padding: 0.25rem 0.5rem; 
+  padding: 0.25rem 0.5rem;
   color: #e2e8f0;
 }
 
@@ -2109,13 +2119,13 @@ h4 {
 
 @media (max-width: 768px) {
   .tx-header {
-    flex-direction: row; 
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
   }
 
   .tx-right-header {
-    flex-direction: column; 
+    flex-direction: column;
     align-items: flex-end;
     gap: 0.25rem;
   }
@@ -2125,18 +2135,18 @@ h4 {
   }
 
   .tx-field {
-    flex-direction: row; 
+    flex-direction: row;
     align-items: center;
   }
 
   .tx-label {
-    width: 2.5rem; 
+    width: 2.5rem;
   }
 
   .tx-value {
     width: 100%;
     padding: 0.25rem 0.35rem;
-    font-size: 0.7rem; 
+    font-size: 0.7rem;
   }
 }
 
@@ -2193,7 +2203,6 @@ h4 {
     margin: 0;
   }
 }
-
 
 @media (max-width: 380px) {
   .filter-btn {
@@ -2348,24 +2357,24 @@ h4 {
 }
 
 .transaction-result {
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .card.transaction-details {
-  max-height: none; 
-  overflow: visible; 
+  max-height: none;
+  overflow: visible;
 }
 
 .tx-io-addresses {
-  max-height: 300px; 
-  overflow-y: auto; 
+  max-height: 300px;
+  overflow-y: auto;
   margin: 0.5rem 0;
   padding: 0.25rem;
 }
 
 .tx-inputs,
 .tx-outputs {
-  overflow: visible; 
+  overflow: visible;
 }
 
 .tx-detail-row {
@@ -2552,22 +2561,19 @@ h4 {
   margin-left: 0.5rem;
 }
 
-
 #txOutput {
   overflow: visible !important;
 }
-
 
 .tx-detail-row {
   padding: 0.75rem 0;
 }
 
-
 @media (max-width: 768px) {
   .tx-detail-value {
     overflow-x: auto;
     white-space: nowrap;
-    padding-bottom: 0.5rem; 
+    padding-bottom: 0.5rem;
   }
 
   .tx-io-address {
@@ -2580,7 +2586,6 @@ h4 {
     position: static;
   }
 }
-
 
 @media (max-width: 768px) {
   .tx-detail-row {
@@ -2606,7 +2611,6 @@ h4 {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 
-
 [data-theme="dark"] .notification.success {
   background-color: var(--success-color, #10b981);
   color: white;
@@ -2624,7 +2628,6 @@ h4 {
   animation: countdown 3s linear forwards;
   border-radius: 0 0 0.5rem 0.5rem;
 }
-
 
 .tx-io-address {
   display: flex;
@@ -2654,7 +2657,6 @@ h4 {
   transform: translateY(0);
 }
 
-
 .tx-detail-value {
   display: flex;
   align-items: center;
@@ -2663,7 +2665,6 @@ h4 {
   font-family: "Courier New", monospace;
   position: relative;
 }
-
 
 .transaction-result {
   margin-top: 1rem;
@@ -2683,7 +2684,6 @@ h4 {
 .tx-outputs {
   overflow: visible;
 }
-
 
 #balanceHistoryResults,
 #txOutput {
@@ -2723,7 +2723,7 @@ h4 {
   text-align: center;
   width: 100%;
   overflow-x: auto;
-  display: block; 
+  display: block;
 }
 
 #balanceHistorySearch,
@@ -3064,14 +3064,14 @@ h4 {
 .transaction-success h3 {
   font-size: 1.25rem;
   margin: 0.5rem 0;
-  color: #0abe81; 
+  color: #0abe81;
   font-weight: 600;
 }
 
-  @media (max-width: 768px) {
-    .tx-detail-value {
-      margin-left: 0;
-    }
+@media (max-width: 768px) {
+  .tx-detail-value {
+    margin-left: 0;
+  }
 }
 
 .transaction-error h3 {
@@ -3156,245 +3156,533 @@ h4 {
   }
 }
 
-  /* Transaction Details Card */
-  .tx-details-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 0;
-    margin: 1rem 0 1.5rem;
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-  }
+/* Transaction Details Card */
+.tx-details-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0;
+  margin: 1rem 0 1.5rem;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
 
+.tx-detail-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  align-items: flex-start;
+  text-align: left;
+}
+
+.tx-detail-item:last-child {
+  border-bottom: none;
+}
+
+.tx-detail-label {
+  font-weight: 500;
+  color: #4794ff;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  width: 100%;
+  letter-spacing: 0.02em;
+}
+
+.tx-detail-label i {
+  color: #4794ff;
+  font-size: 0.875rem;
+  width: 18px;
+  text-align: center;
+}
+
+.tx-detail-value {
+  color: var(--text-color);
+  font-weight: 400;
+  word-break: break-all;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", "Courier New", monospace;
+  padding: 0;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-left: 0;
+}
+
+.tx-detail-value span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  display: block;
+}
+
+.tx-detail-item:last-child .tx-detail-value span {
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.copy-small {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.copy-small:hover {
+  color: var(--primary-color);
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.copy-small:active {
+  transform: scale(0.95);
+}
+
+.view-on-chain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.tx-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
+.tx-actions .btn {
+  width: 100%;
+  transition: all 0.2s ease;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.tx-actions .btn:hover {
+  opacity: 0.9;
+}
+
+.tx-actions .btn-primary {
+  background: #4794ff;
+  border: none;
+  color: white;
+  font-weight: 500;
+}
+
+.tx-actions .btn-secondary {
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.view-on-chain {
+  margin-bottom: 0.75rem;
+}
+
+.transaction-error .tx-actions .btn-primary {
+  background: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+.transaction-error .tx-actions .btn-primary:hover {
+  background: rgba(var(--error-color-rgb), 0.9);
+  border-color: var(--danger-color);
+}
+
+.transaction-error .error-details {
+  background: rgba(var(--error-color-rgb), 0.05);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(var(--error-color-rgb), 0.2);
+  margin: 1rem 0;
+  color: var(--danger-color);
+  font-family: monospace;
+  font-size: 0.875rem;
+  word-break: break-all;
+  text-align: left;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
   .tx-detail-item {
-    display: flex;
     flex-direction: column;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     align-items: flex-start;
-    text-align: left;
-  }
-
-  .tx-detail-item:last-child {
-    border-bottom: none;
   }
 
   .tx-detail-label {
-    font-weight: 500;
-    color: #4794ff; 
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.5rem;
-    width: 100%;
-    letter-spacing: 0.02em;
-  }
-
-  .tx-detail-label i {
-    color: #4794ff; 
-    font-size: 0.875rem;
-    width: 18px;
-    text-align: center;
+    min-width: auto;
   }
 
   .tx-detail-value {
-    color: var(--text-color);
-    font-weight: 400;
-    word-break: break-all;
-    font-family: "Monaco", "Menlo", "Ubuntu Mono", "Courier New", monospace;
-    padding: 0;
-    font-size: 0.875rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
     margin-left: 0;
   }
 
-  .tx-detail-value span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
-    display: block;
+  .transaction-success h3,
+  .transaction-error h3 {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .transaction-success,
+  .transaction-error {
+    padding: 1rem;
   }
 
-  .tx-detail-item:last-child .tx-detail-value span {
-    white-space: nowrap;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .copy-small {
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: auto;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-  }
-
-  .copy-small:hover {
-    color: var(--primary-color);
-    background-color: rgba(var(--primary-color-rgb), 0.1);
-  }
-
-  .copy-small:active {
-    transform: scale(0.95);
-  }
-
-  .view-on-chain {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
+  .tx-details-card {
+    padding: 0;
+    margin: 0.75rem 0;
   }
 
   .tx-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .checkmark-circle,
+  .error-circle {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .checkmark,
+  .error-icon {
+    font-size: 1.25rem;
+  }
+
+  .tx-detail-value {
+    font-size: 0.75rem;
+  }
+
+  .tx-detail-item {
+    padding: 0.5rem 0.75rem;
   }
 
   .tx-actions .btn {
+    padding: 0.625rem;
+  }
+
+  .searched-addresses-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .btn-clear-all {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .address-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .searched-address-item {
+    padding: 0.4rem;
+  }
+
+  .btn-copy,
+  .btn-copy-current,
+  .btn-delete,
+  .btn-check {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.65rem;
+  }
+
+  .address-display {
+    font-size: 0.7rem;
+  }
+
+  .address-toggle-group {
+    gap: 0.25rem;
+  }
+
+  .btn-toggle-address {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.25rem;
+  }
+} /* Transaction list */
+.transaction-list {
+  gap: 0.5rem;
+}
+
+.hash-value,
+.address-value {
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+/* Searched Addresses Styles */
+.searched-addresses-card {
+  margin-top: 2rem;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.searched-addresses-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.searched-addresses-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.searched-addresses-header h3 i {
+  color: var(--primary-color);
+}
+
+.btn-clear-all {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--danger-color);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.btn-clear-all:hover {
+  background-color: rgba(var(--danger-color-rgb), 0.1);
+}
+
+.searched-addresses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.searched-address-item {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 0.75rem;
+  position: relative;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.searched-address-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.searched-address-item.has-source-info {
+  padding-bottom: 1rem;
+}
+
+.address-toggle-section {
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.address-toggle-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-toggle-address {
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle-address.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.address-content-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.address-info {
+  flex-grow: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.address-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  font-family: monospace;
+}
+
+.address-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .address-text {
+    white-space: normal;
+    word-break: break-all;
+    font-size: 0.75rem;
+  }
+}
+
+.address-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-copy,
+.btn-copy-current,
+.btn-delete,
+.btn-check {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.btn-copy i,
+.btn-copy-current i {
+  color: var(--primary-color);
+}
+
+.btn-delete i {
+  color: var(--danger-color);
+}
+
+.btn-check i {
+  color: var(--success-color);
+}
+
+.btn-copy:hover,
+.btn-copy-current:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.btn-delete:hover {
+  background-color: rgba(var(--danger-color-rgb), 0.1);
+}
+
+.btn-check:hover {
+  background-color: rgba(var(--success-color-rgb), 0.1);
+}
+
+@media (max-width: 768px) {
+  .address-content-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .address-actions {
     width: 100%;
-    transition: all 0.2s ease;
+    justify-content: flex-start;
+    gap: 0.35rem;
+  }
+
+  .searched-addresses-card {
+    margin-top: 1.5rem;
+  }
+
+  .searched-addresses-header {
     padding: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .searched-addresses-list {
+    padding: 0.5rem;
+    max-height: 250px;
+  }
+
+  .searched-address-item {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .address-toggle-group {
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .btn-toggle-address {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.35rem;
+    flex-grow: 1;
+    text-align: center;
+  }
+
+  .btn-copy,
+  .btn-copy-current,
+  .btn-delete,
+  .btn-check {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    border-radius: 0.25rem;
   }
 
-  .tx-actions .btn:hover {
-    opacity: 0.9;
+  .address-info {
+    margin-bottom: 0.25rem;
   }
-
-  .tx-actions .btn-primary {
-    background: #4794ff; 
-    border: none;
-    color: white;
-    font-weight: 500;
-  }
-
-  .tx-actions .btn-secondary {
-    background: transparent;
-    color: var(--text-color);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .view-on-chain {
-    margin-bottom: 0.75rem;
-  }
-
-  .transaction-error .tx-actions .btn-primary {
-    background: var(--danger-color);
-    border-color: var(--danger-color);
-  }
-
-  .transaction-error .tx-actions .btn-primary:hover {
-    background: rgba(var(--error-color-rgb), 0.9);
-    border-color: var(--danger-color);
-  }
-
-  .transaction-error .error-details {
-    background: rgba(var(--error-color-rgb), 0.05);
-    padding: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgba(var(--error-color-rgb), 0.2);
-    margin: 1rem 0;
-    color: var(--danger-color);
-    font-family: monospace;
-    font-size: 0.875rem;
-    word-break: break-all;
-    text-align: left;
-    max-height: 200px;
-    overflow-y: auto;
-  }
-
-  @media (max-width: 768px) {
-    .tx-detail-item {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .tx-detail-label {
-      margin-bottom: 0.5rem;
-      min-width: auto;
-    }
-
-    .tx-detail-value {
-      margin-left: 0;
-    }
-
-    .transaction-success h3,
-    .transaction-error h3 {
-      font-size: 1.25rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .transaction-success,
-    .transaction-error {
-      padding: 1rem;
-    }
-
-    .tx-details-card {
-      padding: 0;
-      margin: 0.75rem 0;
-    }
-
-    .tx-actions {
-      gap: 0.5rem;
-    }
-
-    .checkmark-circle,
-    .error-circle {
-      width: 3.5rem;
-      height: 3.5rem;
-    }
-
-    .checkmark,
-    .error-icon {
-      font-size: 1.25rem;
-    }
-
-    .tx-detail-value {
-      font-size: 0.75rem;
-    }
-
-    .tx-detail-item {
-      padding: 0.5rem 0.75rem;
-    }
-
-    .tx-actions .btn {
-      padding: 0.625rem;
-    }
-  }
-
-  /* Transaction list */
-  .transaction-list {
-    gap: 0.5rem;
-  }
-
-  .hash-value,
-  .address-value {
-    font-size: 0.8rem;
-    word-break: break-all;
-  }
-
+}

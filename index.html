@@ -26,6 +26,7 @@
     <script src="doge/lib.dogecoin.js"></script>
     <script src="doge/dogeCrypto.js"></script>
     <script src="doge/dogeBlockchainAPI.js"></script>
+    <script src="doge/dogeSearchDB.js"></script>
   </head>
   <body>
     <!-- Confirmation Popup -->
@@ -344,14 +345,14 @@
             <div id="balanceHistorySearch">
               <div class="form-group">
                 <label
-                  ><i class="fas fa-map-marker-alt"></i> Dogecoin Address /
-                  Private Key:</label
+                  ><i class="fas fa-map-marker-alt"></i> DOGE/BTC/FLO/LTC
+                  address:</label
                 >
                 <div class="input-with-actions">
                   <input
                     id="transactionAddr"
                     class="form-input"
-                    placeholder="Enter DOGE address or private key (DOGE/BTC/FLO/LTC)"
+                    placeholder="Enter DOGE/BTC/FLO/LTC address"
                   />
                   <button
                     type="button"
@@ -362,10 +363,6 @@
                     <i class="fas fa-times"></i>
                   </button>
                 </div>
-                <small class="form-text"
-                  >Enter an address, private key (DOGE/BTC/FLO/LTC) to check
-                  balance</small
-                >
               </div>
               <button
                 class="btn btn-primary btn-block"
@@ -511,6 +508,27 @@
 
           <!-- Transaction Details Results -->
           <div id="txOutput" class="transaction-result"></div>
+
+          <!-- Searched Addresses History -->
+          <div
+            id="searchedAddressesContainer"
+            class="card searched-addresses-card"
+            style="display: none"
+          >
+            <div class="searched-addresses-header">
+              <h3><i class="fas fa-history"></i> Recent Addresses</h3>
+              <button
+                onclick="clearAllSearchedAddresses()"
+                class="btn-clear-all"
+                title="Clear all"
+              >
+                <i class="fas fa-trash"></i> Clear All
+              </button>
+            </div>
+            <div class="searched-addresses-list" id="searchedAddressesList">
+              <!-- Searched addresses will be displayed here -->
+            </div>
+          </div>
         </div>
 
         <div id="historyPage" class="page hidden"></div>
@@ -662,6 +680,9 @@
     <div id="notification_drawer" class="notification-drawer"></div>
 
     <script>
+      // Initialize the searched address database
+      const searchedAddressDB = new SearchedAddressDB();
+
       let currentTxOffset = 0;
       let txPerPage = 10;
       let totalTxCount = 0;
@@ -1378,32 +1399,92 @@
           });
       }
 
-      // Transaction History & Balance (Combined)
+      function getBlockchainType(address) {
+        if (address.startsWith("D")) return "DOGE";
+        if (address.startsWith("F")) return "FLO";
+        if (address.startsWith("L")) return "LTC";
+        if (
+          address.startsWith("bc1") ||
+          address.startsWith("1") ||
+          address.startsWith("3")
+        )
+          return "BTC";
+        return "UNKNOWN";
+      }
+
       function loadTransactions() {
         const input = document.getElementById("transactionAddr").value.trim();
         if (!input) {
-          notify("Please enter a Dogecoin address or private key", "error");
+          notify("Please enter a blockchain address", "error");
           return;
         }
 
-        // Determine if the input is an address or a private key
+        // Determine if the input is a valid address
         let address = input;
+        let isDogeAddress = input.startsWith("D");
+        let isOtherSupportedAddress =
+          input.startsWith("F") ||
+          input.startsWith("L") ||
+          input.startsWith("bc1") ||
+          input.startsWith("1") ||
+          input.startsWith("3");
 
-        // Check if input might be a private key (basic validation)
-        if (input.length >= 40 && !input.startsWith("D")) {
-          try {
-            // Attempt to derive address from private key
-            address = dogeCrypto.generateMultiChain(input).DOGE.address;
-            notify("Using address derived from private key", "success");
-          } catch (error) {
-            console.error(
-              "[ERROR] Failed to derive address from input:",
-              error
-            );
-          }
+        // Check if it's potentially a private key (which we don't want to accept)
+        if (
+          input.length >= 40 &&
+          (input.startsWith("5") ||
+            input.startsWith("6") ||
+            input.startsWith("K") ||
+            input.startsWith("L") ||
+            input.startsWith("Q") ||
+            input.startsWith("R") ||
+            input.startsWith("T"))
+        ) {
+          document.getElementById("txList").innerHTML = createErrorUI(
+            "Invalid Input Type",
+            "Private keys are not accepted in the balance & history search. Please enter a valid blockchain address (DOGE, FLO, BTC, or LTC)."
+          );
+
+          notify("Private keys not allowed in this search", "error");
+          return;
+        }
+
+        // Check if address is a valid format
+        if (!isDogeAddress && !isOtherSupportedAddress) {
+          document.getElementById("txList").innerHTML = createErrorUI(
+            "Invalid Address Format",
+            "Please enter a valid blockchain address (DOGE, FLO, BTC, or LTC)."
+          );
+          notify("Invalid address format", "error");
+          return;
         }
 
         setButtonLoading("loadTransactions", true);
+
+        if (!isDogeAddress && isOtherSupportedAddress) {
+          try {
+            notify("Translating address to DOGE equivalent...", "info");
+            const translatedAddresses = dogeCrypto.translateAddress(input);
+            address = translatedAddresses.DOGE;
+            notify("Address translated: " + address, "success");
+          } catch (error) {
+            console.error("Translation error:", error);
+            document.getElementById("balanceSection").style.display = "none";
+            document.getElementById("transactionSection").style.display =
+              "none";
+            document.getElementById("txList").innerHTML = createErrorUI(
+              "Address Translation Failed",
+              `Error: ${
+                error.message ||
+                "Unable to translate address to DOGE equivalent"
+              }`,
+              "loadTransactions()"
+            );
+            notify("Failed to translate address: " + error.message, "error");
+            setButtonLoading("loadTransactions", false);
+            return;
+          }
+        }
 
         // Reset pagination
         currentTxOffset = 0;
@@ -1424,9 +1505,35 @@
             // Set balance values
             document.getElementById("balanceValue").textContent =
               balance.toFixed(8);
-            document.getElementById("displayedAddress").textContent = address;
+
+            const input = document
+              .getElementById("transactionAddr")
+              .value.trim();
+            if (input !== address) {
+              document.getElementById(
+                "displayedAddress"
+              ).innerHTML = `${address}<br><small class="translated-from">translated from ${input}</small>`;
+
+              // Save to search history with source info (translated address)
+              searchedAddressDB.saveSearchedAddress(
+                address,
+                balance,
+                Date.now(),
+                {
+                  originalAddress: input,
+                  blockchain: getBlockchainType(input),
+                }
+              );
+            } else {
+              document.getElementById("displayedAddress").textContent = address;
+
+              // Save to search history
+              searchedAddressDB.saveSearchedAddress(address, balance);
+            }
 
             document.getElementById("balanceSection").style.display = "block";
+
+            updateSearchedAddressesList();
 
             fetchTransactionsWithPagination();
 
@@ -1475,8 +1582,6 @@
       function fetchTransactionsWithPagination() {
         // Make sure the transaction section is visible
         document.getElementById("transactionSection").style.display = "block";
-
-        
 
         document.getElementById("paginationInfo").innerText = "";
 
@@ -1703,6 +1808,232 @@
         document.body.style.overflow = "auto";
       }
 
+      async function updateSearchedAddressesList() {
+        try {
+          const searchedAddresses =
+            await searchedAddressDB.getSearchedAddresses();
+          displaySearchedAddresses(searchedAddresses);
+        } catch (error) {
+          console.error("Error loading searched addresses:", error);
+        }
+      }
+
+      function displaySearchedAddresses(addresses) {
+        const container = document.getElementById("searchedAddressesContainer");
+        const list = document.getElementById("searchedAddressesList");
+
+        if (!container || !list) return;
+
+        if (addresses.length === 0) {
+          container.style.display = "none";
+          return;
+        }
+
+        container.style.display = "block";
+
+        let html = "";
+        addresses.forEach((addr, index) => {
+          // Check if this was translated from another blockchain
+          const hasSourceInfo =
+            addr.sourceInfo && addr.sourceInfo.originalAddress !== addr.address;
+
+          html += `
+            <div class="searched-address-item ${
+              hasSourceInfo ? "has-source-info" : ""
+            }" data-index="${index}" data-current-type="${
+            hasSourceInfo ? addr.sourceInfo.blockchain.toLowerCase() : "doge"
+          }">
+              ${
+                hasSourceInfo
+                  ? `
+                <div class="address-toggle-section">
+                  <div class="address-toggle-group">
+                    <button onclick="toggleAddressType(${index}, '${addr.sourceInfo.blockchain.toLowerCase()}')" 
+                            class="btn-toggle-address active" 
+                            data-type="${addr.sourceInfo.blockchain.toLowerCase()}" 
+                            title="Show ${addr.sourceInfo.blockchain} Address">
+                      ${addr.sourceInfo.blockchain}
+                    </button>
+                    <button onclick="toggleAddressType(${index}, 'doge')" 
+                            class="btn-toggle-address" 
+                            data-type="doge" 
+                            title="Show DOGE Address">
+                      DOGE
+                    </button>
+                  </div>
+                </div>
+                <div class="address-content-wrapper">
+                  <div class="address-info">
+                    <div class="address-display">
+                      <div class="address-text" id="address-display-${index}" title="${
+                      addr.sourceInfo.originalAddress
+                    }">
+                        ${addr.sourceInfo.originalAddress}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="address-actions">
+                    <button onclick="copyCurrentAddress(${index})" class="btn-copy-current" title="Copy Selected Address">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                    <button onclick="deleteSearchedAddress('${
+                      addr.address
+                    }')" class="btn-delete" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                    <button onclick="recheckBalance('${
+                      addr.address
+                    }')" class="btn-check" title="Check balance">
+                      <i class="fas fa-search"></i>
+                    </button>
+                  </div>
+                </div>
+                `
+                  : `
+                <div class="address-info">
+                  <div class="address-display">
+                    <div class="address-text" id="address-display-${index}" title="${addr.address}">
+                      ${addr.address}
+                    </div>
+                  </div>
+                </div>
+                <div class="address-actions">
+                  <button onclick="copyAddressToClipboard('${addr.address}')" class="btn-copy" title="Copy DOGE Address">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                  <button onclick="deleteSearchedAddress('${addr.address}')" class="btn-delete" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                  <button onclick="recheckBalance('${addr.address}')" class="btn-check" title="Check balance">
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
+                `
+              }
+            </div>
+          `;
+        });
+
+        list.innerHTML = html;
+      }
+
+      // toggle between address types in searched addresses
+      async function toggleAddressType(addressIndex, type) {
+        try {
+          const addresses = await searchedAddressDB.getSearchedAddresses();
+          if (!addresses[addressIndex]) return;
+
+          const addressItem = addresses[addressIndex];
+          const container = document.querySelector(
+            `[data-index="${addressIndex}"]`
+          );
+          if (!container) return;
+
+          const toggleButtons = container.querySelectorAll(
+            ".btn-toggle-address"
+          );
+          toggleButtons.forEach((btn) => btn.classList.remove("active"));
+
+          const activeButton = container.querySelector(`[data-type="${type}"]`);
+          if (activeButton) {
+            activeButton.classList.add("active");
+          }
+
+          container.setAttribute("data-current-type", type);
+
+          const addressDisplay = container.querySelector(
+            `#address-display-${addressIndex}`
+          );
+          if (addressDisplay) {
+            if (type === "doge") {
+              // Show DOGE address
+              addressDisplay.textContent = addressItem.address;
+              addressDisplay.title = addressItem.address;
+            } else {
+              // Show original blockchain address (FLO/BTC/LTC)
+              const originalAddress =
+                addressItem.sourceInfo?.originalAddress || addressItem.address;
+              addressDisplay.textContent = originalAddress;
+              addressDisplay.title = originalAddress;
+            }
+          }
+        } catch (error) {
+          console.error("Error toggling address type:", error);
+        }
+      }
+
+      async function copyCurrentAddress(addressIndex) {
+        try {
+          const addresses = await searchedAddressDB.getSearchedAddresses();
+          if (!addresses[addressIndex]) return;
+
+          const addressItem = addresses[addressIndex];
+          const container = document.querySelector(
+            `[data-index="${addressIndex}"]`
+          );
+          if (!container) return;
+
+          const currentType =
+            container.getAttribute("data-current-type") || "doge";
+
+          let addressToCopy;
+          let addressLabel;
+
+          if (currentType === "doge") {
+            addressToCopy = addressItem.address;
+            addressLabel = "DOGE address";
+          } else {
+            addressToCopy =
+              addressItem.sourceInfo?.originalAddress || addressItem.address;
+            addressLabel = `${
+              addressItem.sourceInfo?.blockchain || "Original"
+            } address`;
+          }
+
+          await copyAddressToClipboard(addressToCopy, addressLabel);
+        } catch (error) {
+          console.error("Error copying current address:", error);
+          notify("Failed to copy address", "error");
+        }
+      }
+
+      async function deleteSearchedAddress(address) {
+        try {
+          await searchedAddressDB.deleteSearchedAddress(address);
+          await updateSearchedAddressesList();
+          notify("Address removed from history", "success");
+        } catch (error) {
+          console.error("Error deleting searched address:", error);
+          notify("Failed to remove address", "error");
+        }
+      }
+
+      async function clearAllSearchedAddresses() {
+        try {
+          await searchedAddressDB.clearAllSearchedAddresses();
+          await updateSearchedAddressesList();
+          notify("All searched addresses cleared", "success");
+        } catch (error) {
+          console.error("Error clearing searched addresses:", error);
+          notify("Failed to clear addresses", "error");
+        }
+      }
+
+      async function copyAddressToClipboard(address, label = "Address") {
+        try {
+          await navigator.clipboard.writeText(address);
+          notify(`${label} copied to clipboard`, "success");
+        } catch (error) {
+          console.error("Error copying to clipboard:", error);
+          notify("Failed to copy address", "error");
+        }
+      }
+
+      async function recheckBalance(address) {
+        document.getElementById("transactionAddr").value = address;
+        loadTransactions();
+      }
+
       // Send Dogecoin using RPC method
       function sendDogeRPC() {
         let privateKey = document.getElementById("privateKey").value.trim();
@@ -1741,7 +2072,6 @@
           sendAmount,
           function () {
             setButtonLoading("sendBtn", true);
-            
 
             dogeBlockchainAPI
               .sendDogecoinRPC(
@@ -1937,7 +2267,19 @@
       }
 
       function shareAddress() {
-        const address = document.getElementById("displayedAddress").textContent;
+        const addressElement = document.getElementById("displayedAddress");
+
+        let address;
+        if (
+          addressElement.firstChild &&
+          addressElement.firstChild.nodeType === Node.TEXT_NODE
+        ) {
+          address = addressElement.firstChild.textContent.trim();
+        } else {
+          const fullText = addressElement.textContent;
+          address = fullText.split("translated from")[0].trim();
+        }
+
         if (!address) {
           notify("No address to share", "error");
           return;
@@ -2412,6 +2754,8 @@
             .appendChild(txOutputElement);
         }
 
+        updateSearchedAddressesList();
+
         initializeTheme();
 
         // Show loading screen
@@ -2439,8 +2783,6 @@
           loadingScreen.style.opacity = "0";
           setTimeout(() => {
             loadingScreen.remove();
-            notify("Welcome to RanchiMall Dogecoin Wallet", "success");
-
             handleSharedLinks();
 
             if (!window.location.hash) {
