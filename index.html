@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="title" content="RanchiMall Dogecoin Web Wallet" />
+    <meta
+      name="description"
+      content="RanchiMall Dogecoin Web Wallet - Generate multi-blockchain addresses, send DOGE, view transactions and manage your assets."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="RanchiMall Dogecoin Web Wallet" />
+    <meta
+      property="og:description"
+      content="RanchiMall Dogecoin Web Wallet - Generate multi-blockchain addresses, send DOGE, view transactions and manage your assets."
+    />
+
+    <title>Doge Wallet</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="doge/lib.dogecoin.js"></script>
+    <script src="doge/dogeCrypto.js"></script>
+    <script src="doge/dogeBlockchainAPI.js"></script>
+  </head>
+  <body>
+    <!-- Confirmation Popup -->
+    <div id="confirmationPopup" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="confirmTitle">Confirm Transaction</h3>
+          <span class="modal-close" onclick="closeConfirmationPopup()"
+            >&times;</span
+          >
+        </div>
+        <div class="modal-body">
+          <div class="confirm-details">
+            <div class="detail-group">
+              <label><i class="fas fa-coins"></i> Amount:</label>
+              <div id="confirmAmount" class="confirm-value"></div>
+            </div>
+            <div class="detail-group">
+              <label><i class="fas fa-wallet"></i> From:</label>
+              <div id="confirmFrom" class="confirm-value address-value"></div>
+            </div>
+            <div class="detail-group">
+              <label><i class="fas fa-user"></i> To:</label>
+              <div id="confirmTo" class="confirm-value address-value"></div>
+            </div>
+            <div class="detail-group">
+              <label><i class="fas fa-money-bill-wave"></i> Fee:</label>
+              <div class="confirm-value">0.09 DOGE (Network Fee)</div>
+            </div>
+            <div class="detail-group warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div>
+                Please verify all details carefully. Cryptocurrency transactions
+                cannot be reversed once confirmed.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeConfirmationPopup()">
+            Cancel
+          </button>
+          <button class="btn btn-primary" id="confirmSendBtn">
+            Confirm & Send
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification-drawer"></div>
+    <header class="header">
+      <div class="header-content">
+        <div id="logo" class="app-brand">
+          <svg id="main_logo" class="icon" viewBox="0 0 27.25 32">
+            <title>RanchiMall</title>
+            <path
+              d="M27.14,30.86c-.74-2.48-3-4.36-8.25-6.94a20,20,0,0,1-4.2-2.49,6,6,0,0,1-1.25-1.67,4,4,0,0,1,0-2.26c.37-1.08.79-1.57,3.89-4.55a11.66,11.66,0,0,0,3.34-4.67,6.54,6.54,0,0,0,.05-2.82C20,3.6,18.58,2,16.16.49c-.89-.56-1.29-.64-1.3-.24a3,3,0,0,1-.3.72l-.3.55L13.42.94C13,.62,12.4.26,12.19.15c-.4-.2-.73-.18-.72.05a9.39,9.39,0,0,1-.61,1.33s-.14,0-.27-.13C8.76.09,8-.27,8,.23A11.73,11.73,0,0,1,6.76,2.6C4.81,5.87,2.83,7.49.77,7.49c-.89,0-.88,0-.61,1,.22.85.33.92,1.09.69A5.29,5.29,0,0,0,3,8.33c.23-.17.45-.29.49-.26a2,2,0,0,1,.22.63A1.31,1.31,0,0,0,4,9.34a5.62,5.62,0,0,0,2.27-.87L7,8l.13.55c.19.74.32.82,1,.65a7.06,7.06,0,0,0,3.46-2.47l.6-.71-.06.64c-.17,1.63-1.3,3.42-3.39,5.42L6.73,14c-3.21,3.06-3,5.59.6,8a46.77,46.77,0,0,0,4.6,2.41c.28.13,1,.52,1.59.87,3.31,2,4.95,3.92,4.95,5.93a2.49,2.49,0,0,0,.07.77h0c.09.09,0,.1.9-.14a2.61,2.61,0,0,0,.83-.32,3.69,3.69,0,0,0-.55-1.83A11.14,11.14,0,0,0,17,26.81a35.7,35.7,0,0,0-5.1-2.91C9.37,22.64,8.38,22,7.52,21.17a3.53,3.53,0,0,1-1.18-2.48c0-1.38.71-2.58,2.5-4.23,2.84-2.6,3.92-3.91,4.67-5.65a3.64,3.64,0,0,0,.42-2A3.37,3.37,0,0,0,13.61,5l-.32-.74.29-.48c.17-.27.37-.63.46-.8l.15-.3.44.64a5.92,5.92,0,0,1,1,2.81,5.86,5.86,0,0,1-.42,1.94c0,.12-.12.3-.15.4a9.49,9.49,0,0,1-.67,1.1,28,28,0,0,1-4,4.29C8.62,15.49,8.05,16.44,8,17.78a3.28,3.28,0,0,0,1.11,2.76c.95,1,2.07,1.74,5.25,3.32,3.64,1.82,5.22,2.9,6.41,4.38A4.78,4.78,0,0,1,21.94,31a3.21,3.21,0,0,0,.14.92,1.06,1.06,0,0,0,.43-.05l.83-.22.46-.12-.06-.46c-.21-1.53-1.62-3.25-3.94-4.8a37.57,37.57,0,0,0-5.22-2.82A13.36,13.36,0,0,1,11,21.19a3.36,3.36,0,0,1-.8-4.19c.41-.85.83-1.31,3.77-4.15,2.39-2.31,3.43-4.13,3.43-6a5.85,5.85,0,0,0-2.08-4.29c-.23-.21-.44-.43-.65-.65A2.5,2.5,0,0,1,15.27.69a10.6,10.6,0,0,1,2.91,2.78A4.16,4.16,0,0,1,19,6.16a4.91,4.91,0,0,1-.87,3c-.71,1.22-1.26,1.82-4.27,4.67a9.47,9.47,0,0,0-2.07,2.6,2.76,2.76,0,0,0-.33,1.54,2.76,2.76,0,0,0,.29,1.47c.57,1.21,2.23,2.55,4.65,3.73a32.41,32.41,0,0,1,5.82,3.24c2.16,1.6,3.2,3.16,3.2,4.8a1.94,1.94,0,0,0,.09.76,4.54,4.54,0,0,0,1.66-.4C27.29,31.42,27.29,31.37,27.14,30.86ZM6.1,7h0a3.77,3.77,0,0,1-1.46.45L4,7.51l.68-.83a25.09,25.09,0,0,0,3-4.82A12,12,0,0,1,8.28.76c.11-.12.77.32,1.53,1l.63.58-.57.84A10.34,10.34,0,0,1,6.1,7Zm5.71-1.78A9.77,9.77,0,0,1,9.24,7.18h0a5.25,5.25,0,0,1-1.17.28l-.58,0,.65-.78a21.29,21.29,0,0,0,2.1-3.12c.22-.41.42-.76.44-.79s.5.43.9,1.24L12,5ZM13.41,3a2.84,2.84,0,0,1-.45.64,11,11,0,0,1-.9-.91l-.84-.9.19-.45c.34-.79.39-.8,1-.31A9.4,9.4,0,0,1,13.8,2.33q-.18.34-.39.69Z"
+            />
+          </svg>
+          <div class="app-name">
+            <div class="app-name__company">RanchiMall</div>
+            <h4 class="app-name__title">Doge Wallet</h4>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button
+            id="themeToggle"
+            class="theme-toggle"
+            title="Toggle dark/light mode"
+          >
+            <i class="fas fa-sun" id="themeIcon"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+    <div class="container">
+      <nav class="sidebar" id="sidebar">
+        <ul class="sidebar-menu">
+          <li>
+            <a href="#" onclick="showPage('walletPage')" class="nav-link active"
+              ><i class="fas fa-wallet"></i>Generate</a
+            >
+          </li>
+          <li>
+            <a href="#" onclick="showPage('sendPage')" class="nav-link"
+              ><i class="fas fa-paper-plane"></i>Send</a
+            >
+          </li>
+          <li>
+            <a href="#" onclick="showPage('transactionsPage')" class="nav-link"
+              ><i class="fas fa-exchange-alt"></i>Transactions</a
+            >
+          </li>
+          <li>
+            <a href="#" onclick="showPage('translatePage')" class="nav-link"
+              ><i class="fas fa-sync-alt"></i>Translate</a
+            >
+          </li>
+          <li>
+            <a href="#" onclick="showPage('recoverPage')" class="nav-link"
+              ><i class="fas fa-key"></i>Recover</a
+            >
+          </li>
+        </ul>
+      </nav>
+      <main class="main-content">
+        <!-- Wallet Page (Generate) -->
+        <div id="walletPage" class="page">
+          <div class="page-header">
+            <h2>
+              <i class="fas fa-key"></i> Generate Multi-Blockchain Addresses
+            </h2>
+            <p>
+              Generate addresses for DOGE, FLO, BTC, and LTC from a single
+              private key
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="generate-wallet-intro">
+              <div class="intro-icon">
+                <i class="fas fa-wallet"></i>
+              </div>
+              <div class="intro-content">
+                <h3>One Key, Multiple Blockchains</h3>
+                <p>
+                  Generate a single private key that works across DOGE, FLO,
+                  BTC, and LTC networks. This creates a unified experience
+                  across multiple blockchains.
+                </p>
+              </div>
+            </div>
+
+            <div class="generate-actions">
+              <button
+                id="generateBtn"
+                class="btn btn-primary btn-block"
+                onclick="generateMultiChain()"
+              >
+                <span class="btn-text"
+                  ><i class="fas fa-wallet"></i> Generate</span
+                >
+                <span class="btn-loading" style="display: none">
+                  <i class="fas fa-spinner fa-spin"></i> Generating...
+                </span>
+              </button>
+            </div>
+
+            <div id="multiResult" class="output"></div>
+          </div>
+        </div>
+
+        <!-- Recover Page -->
+        <div id="recoverPage" class="page hidden">
+          <div class="page-header">
+            <h2>
+              <i class="fas fa-key"></i> Recover Multi-Blockchain Addresses
+            </h2>
+            <p>
+              Recover all blockchain addresses (DOGE, FLO, BTC, LTC) from a
+              single private key
+            </p>
+          </div>
+          <div class="card">
+            <div class="form-group">
+              <label
+                ><i class="fas fa-key"></i> Private Key
+                (DOGE/BTC/FLO/LTC):</label
+              >
+              <div class="input-with-actions">
+                <input
+                  id="translateWIF"
+                  class="form-input"
+                  type="password"
+                  placeholder="Enter DOGE / BTC / FLO / LTC private key"
+                />
+                <button
+                  type="button"
+                  class="input-action-btn password-toggle"
+                  onclick="togglePasswordVisibility('translateWIF')"
+                  title="Show/Hide Password"
+                >
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button
+                  type="button"
+                  class="input-action-btn clear-btn"
+                  onclick="clearInput('translateWIF')"
+                  title="Clear"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <small class="form-text">
+                Enter a private key in WIF format for any supported blockchain
+                (DOGE, BTC, FLO, LTC). All equivalent blockchain addresses will
+                be recovered.
+              </small>
+            </div>
+
+            <div class="recover-actions">
+              <button
+                class="btn btn-primary btn-block"
+                onclick="translateAddress()"
+                id="recoverBtn"
+              >
+                <span class="btn-text"
+                  ><i class="fas fa-search"></i> Recover Addresses</span
+                >
+                <span class="btn-loading" style="display: none">
+                  <i class="fas fa-spinner fa-spin"></i> Recovering...
+                </span>
+              </button>
+            </div>
+
+            <div id="translateResult" class="output"></div>
+          </div>
+        </div>
+
+        <!-- Address Translation Page -->
+        <div id="translatePage" class="page hidden">
+          <div class="page-header">
+            <h2><i class="fas fa-sync-alt"></i> Address Translation</h2>
+            <p>Convert addresses between blockchains (DOGE, FLO, BTC, LTC)</p>
+          </div>
+          <div class="card">
+            <div class="form-group">
+              <label
+                ><i class="fas fa-map-marker-alt"></i> Blockchain
+                Address:</label
+              >
+              <div class="input-with-actions">
+                <input
+                  id="addressToTranslate"
+                  class="form-input"
+                  placeholder="Enter DOGE / BTC / FLO / LTC address"
+                />
+                <button
+                  type="button"
+                  class="input-action-btn clear-btn"
+                  onclick="clearInput('addressToTranslate')"
+                  title="Clear"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <small class="form-text"
+                >Enter any blockchain address to see equivalent addresses on
+                other chains</small
+              >
+            </div>
+
+            <button
+              class="btn btn-primary btn-block"
+              onclick="translateDirectAddress()"
+              id="translateBtn"
+            >
+              <span class="btn-text"
+                ><i class="fas fa-exchange-alt"></i> Translate Address</span
+              >
+              <span class="btn-loading" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Translating...
+              </span>
+            </button>
+
+            <div id="directTranslateResult" class="output"></div>
+          </div>
+        </div>
+
+        <!-- Transactions Page -->
+        <div id="transactionsPage" class="page hidden">
+          <div class="page-header">
+            <h2><i class="fas fa-exchange-alt"></i> Dogecoin Transactions</h2>
+            <p>
+              Check balance and transaction history for any Dogecoin address
+            </p>
+          </div>
+
+          <div class="card search-card">
+            <div class="search-type-selector">
+              <p class="search-type-label">Search Type:</p>
+              <div class="search-type-options">
+                <label
+                  class="radio-button-container active"
+                  id="balanceHistoryRadio"
+                >
+                  <input
+                    type="radio"
+                    name="searchType"
+                    value="balance"
+                    checked
+                    onclick="toggleSearchType('balance'); return true;"
+                  />
+                  <span class="radio-icon"><i class="fas fa-coins"></i></span>
+                  <span>Balance & History</span>
+                </label>
+                <label
+                  class="radio-button-container"
+                  id="transactionDetailsRadio"
+                >
+                  <input
+                    type="radio"
+                    name="searchType"
+                    value="transaction"
+                    onclick=" toggleSearchType('transaction'); return true;"
+                  />
+                  <span class="radio-icon"
+                    ><i class="fas fa-exchange-alt"></i
+                  ></span>
+                  <span>Transaction Details</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Balance & History Search Form -->
+            <div id="balanceHistorySearch">
+              <div class="form-group">
+                <label
+                  ><i class="fas fa-map-marker-alt"></i> Dogecoin Address /
+                  Private Key:</label
+                >
+                <div class="input-with-actions">
+                  <input
+                    id="transactionAddr"
+                    class="form-input"
+                    placeholder="Enter DOGE address or private key (DOGE/BTC/FLO/LTC)"
+                  />
+                  <button
+                    type="button"
+                    class="input-action-btn clear-btn"
+                    onclick="clearInput('transactionAddr')"
+                    title="Clear"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <small class="form-text"
+                  >Enter an address, private key (DOGE/BTC/FLO/LTC) to check
+                  balance</small
+                >
+              </div>
+              <button
+                class="btn btn-primary btn-block"
+                id="loadTransactions"
+                onclick="loadTransactions()"
+              >
+                <span class="btn-text"
+                  ><i class="fas fa-search"></i> Check Balance</span
+                >
+                <span class="btn-loading" style="display: none">
+                  <i class="fas fa-spinner fa-spin"></i> Loading...
+                </span>
+              </button>
+            </div>
+
+            <!-- Transaction Details Search Form -->
+            <div id="transactionSearch" style="display: none">
+              <div class="form-group">
+                <label><i class="fas fa-hashtag"></i> Transaction Hash:</label>
+                <div class="input-with-actions">
+                  <input
+                    id="txHash"
+                    class="form-input"
+                    placeholder="Enter transaction hash"
+                  />
+                  <button
+                    type="button"
+                    class="input-action-btn clear-btn"
+                    onclick="clearInput('txHash')"
+                    title="Clear"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <small class="form-text"
+                  >Enter a transaction hash to see details</small
+                >
+              </div>
+              <button
+                class="btn btn-primary btn-block"
+                id="txSearchBtn"
+                onclick="searchTransactionDetails();"
+              >
+                <span class="btn-text"
+                  ><i class="fas fa-search"></i> Search Transaction</span
+                >
+                <span class="btn-loading" style="display: none">
+                  <i class="fas fa-spinner fa-spin"></i> Searching...
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Balance & History Results -->
+          <div id="balanceHistoryResults">
+            <!-- Account Balance section -->
+            <div
+              id="balanceSection"
+              class="card balance-info"
+              style="display: none"
+            >
+              <div class="balance-header">
+                <h3><i class="fas fa-coins"></i> Account Balance</h3>
+                <button
+                  onclick="shareAddress()"
+                  class="btn-icon share-btn"
+                  title="Copy Address Link"
+                >
+                  <i class="fas fa-share-alt"></i>
+                </button>
+              </div>
+              <div class="balance-display">
+                <span class="balance-amount" id="balanceValue">0</span>
+                <span class="currency">DOGE</span>
+              </div>
+              <div class="account-details">
+                <div class="detail-row">
+                  <label>Address:</label>
+                  <div class="address-container">
+                    <span id="displayedAddress" class="address-text"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transaction section -->
+            <div id="transactionSection" style="display: none">
+              <div class="transaction-section">
+                <div class="transaction-header">
+                  <h3>Transactions</h3>
+                  <div class="filter-buttons">
+                    <button
+                      class="filter-btn active"
+                      data-filter="all"
+                      onclick="filterTransactions('all')"
+                    >
+                      All
+                    </button>
+                    <button
+                      class="filter-btn"
+                      data-filter="received"
+                      onclick="filterTransactions('received')"
+                    >
+                      Received
+                    </button>
+                    <button
+                      class="filter-btn"
+                      data-filter="sent"
+                      onclick="filterTransactions('sent')"
+                    >
+                      Sent
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div id="txList" class="transaction-list"></div>
+              <div class="pagination-section">
+                <div id="paginationInfo" class="pagination-info">
+                  Showing 0 - 0 of 0 transactions
+                </div>
+                <div class="pagination-controls" id="paginationControls">
+                  <button
+                    class="pagination-btn"
+                    id="prevBtn"
+                    onclick="loadPreviousTransactions()"
+                    disabled
+                  >
+                    <i class="fas fa-chevron-left"></i> Previous
+                  </button>
+                  <div class="page-numbers" id="pageNumbers"></div>
+                  <button
+                    class="pagination-btn"
+                    id="nextBtn"
+                    onclick="loadNextTransactions()"
+                    disabled
+                  >
+                    Next <i class="fas fa-chevron-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transaction Details Results -->
+          <div id="txOutput" class="transaction-result"></div>
+        </div>
+
+        <div id="historyPage" class="page hidden"></div>
+        <div id="balancePage" class="page hidden"></div>
+
+        <!-- Send Page -->
+        <div id="sendPage" class="page hidden">
+          <div class="page-header">
+            <h2><i class="fas fa-paper-plane"></i> Send DOGE</h2>
+            <p>Send Dogecoin to any address</p>
+          </div>
+
+          <div class="card">
+            <div class="form-group">
+              <label><i class="fas fa-key"></i> Sender's Private Key:</label>
+              <div class="input-with-actions">
+                <input
+                  id="privateKey"
+                  class="form-input"
+                  type="password"
+                  placeholder="Sender's Private Key"
+                  onchange="updateSenderAddress()"
+                  onpaste="setTimeout(updateSenderAddress, 10)"
+                  oninput="setTimeout(updateSenderAddress, 10)"
+                />
+                <button
+                  type="button"
+                  class="input-action-btn password-toggle"
+                  onclick="togglePasswordVisibility('privateKey')"
+                  title="Show/Hide Password"
+                >
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button
+                  type="button"
+                  class="input-action-btn clear-btn"
+                  onclick="clearInput('privateKey'); document.getElementById('senderAddress').value = ''"
+                  title="Clear"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label
+                ><i class="fas fa-user"></i> Recipient's DOGE Address:</label
+              >
+              <div class="input-with-actions">
+                <input
+                  id="receiverAddress"
+                  class="form-input"
+                  placeholder="Recipient's DOGE address"
+                />
+                <button
+                  type="button"
+                  class="input-action-btn clear-btn"
+                  onclick="clearInput('receiverAddress')"
+                  title="Clear"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-coins"></i> Amount (DOGE):</label>
+              <div class="input-with-actions">
+                <input
+                  id="sendAmount"
+                  class="form-input"
+                  type="number"
+                  step="0.00000001"
+                  min="1"
+                  placeholder="Amount to send (DOGE)"
+                />
+                <button
+                  type="button"
+                  class="input-action-btn clear-btn"
+                  onclick="clearInput('sendAmount')"
+                  title="Clear"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <small class="form-text"
+                >Transaction fee (0.09 DOGE) will be automatically added</small
+              >
+            </div>
+
+            <button
+              class="btn btn-primary btn-block"
+              onclick="sendDogeRPC()"
+              id="sendBtn"
+            >
+              <span class="btn-text"
+                ><i class="fas fa-paper-plane"></i> Send DOGE</span
+              >
+              <span class="btn-loading" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Sending...
+              </span>
+            </button>
+
+            <div id="sendResult" class="output"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <div class="nav-box">
+      <button
+        onclick="showPage('walletPage')"
+        class="nav-btn active"
+        data-page="walletPage"
+      >
+        <i class="fas fa-wallet"></i><span>Generate</span>
+      </button>
+      <button
+        onclick="showPage('sendPage')"
+        class="nav-btn"
+        data-page="sendPage"
+      >
+        <i class="fas fa-paper-plane"></i><span>Send</span>
+      </button>
+      <button
+        onclick="showPage('transactionsPage')"
+        class="nav-btn"
+        data-page="transactionsPage"
+      >
+        <i class="fas fa-exchange-alt"></i><span>Transaction</span>
+      </button>
+      <button
+        onclick="showPage('translatePage')"
+        class="nav-btn"
+        data-page="translatePage"
+      >
+        <i class="fas fa-sync-alt"></i><span>Translate</span>
+      </button>
+      <button
+        onclick="showPage('recoverPage')"
+        class="nav-btn"
+        data-page="recoverPage"
+      >
+        <i class="fas fa-key"></i><span>Recover</span>
+      </button>
+    </div>
+
+    <div id="notification_drawer" class="notification-drawer"></div>
+
+    <script>
+      let currentTxOffset = 0;
+      let txPerPage = 10;
+      let totalTxCount = 0;
+      let currentTxAddress = "";
+
+      // Theme toggle
+      function initializeTheme() {
+        const themeToggle = document.getElementById("themeToggle");
+        const body = document.body;
+        const savedTheme = localStorage.getItem("theme");
+        const systemPrefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        let currentTheme = savedTheme || (systemPrefersDark ? "dark" : "light");
+        body.setAttribute("data-theme", currentTheme);
+        updateThemeIcon(currentTheme);
+
+        themeToggle.addEventListener("click", () => {
+          currentTheme = currentTheme === "light" ? "dark" : "light";
+          body.setAttribute("data-theme", currentTheme);
+          localStorage.setItem("theme", currentTheme);
+          updateThemeIcon(currentTheme);
+          notify(`Switched to ${currentTheme} mode`, "success");
+        });
+      }
+
+      function updateThemeIcon(theme) {
+        const themeIcon = document.getElementById("themeIcon");
+        if (!themeIcon) return;
+        themeIcon.className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
+      }
+
+      // Notification function
+      function notify(message, type = "success", durationMs = 3000) {
+        showNotification(message, type);
+      }
+
+      // Show notification function
+      function showNotification(message, type = "info") {
+        const notificationDrawer =
+          document.querySelector(".notification-drawer") ||
+          createNotificationDrawer();
+
+        const notification = document.createElement("div");
+        notification.className = `notification ${type}`;
+
+        let icon = '<i class="fas fa-info-circle"></i>';
+        if (type === "success") {
+          icon = '<i class="fas fa-check-circle"></i>';
+        } else if (type === "error") {
+          icon = '<i class="fas fa-exclamation-circle"></i>';
+        } else if (type === "warning") {
+          icon = '<i class="fas fa-exclamation-triangle"></i>';
+        }
+
+        notification.innerHTML = `${icon} <span>${message}</span>`;
+        notificationDrawer.appendChild(notification);
+
+        // Remove notification after 3 seconds
+        setTimeout(() => {
+          notification.style.transform = "translateX(120%)";
+          notification.style.opacity = "0";
+
+          setTimeout(() => {
+            notification.remove();
+          }, 300);
+        }, 3000);
+      }
+
+      function createNotificationDrawer() {
+        const drawer = document.createElement("div");
+        drawer.className = "notification-drawer";
+        document.body.appendChild(drawer);
+        return drawer;
+      }
+
+      // Store translated address results when available
+      let storedTranslateResults = {
+        directTranslate: null,
+        recoverTranslate: null,
+      };
+
+      // Calculate the actual amount sent in a transaction
+      function calculateAmountSent(tx) {
+        if (tx.outputs.length <= 1) {
+          return tx.totalOutput;
+        }
+
+        const sortedOutputs = [...tx.outputs].sort((a, b) => b.value - a.value);
+        let amountSent = sortedOutputs[0].value;
+        if (
+          tx.inputs.length > 0 &&
+          tx.inputs[0].addresses &&
+          tx.inputs[0].addresses.length > 0
+        ) {
+          const inputAddresses = new Set();
+          tx.inputs.forEach((input) => {
+            if (input.addresses) {
+              input.addresses.forEach((addr) => inputAddresses.add(addr));
+            }
+          });
+
+          let externalOutputs = tx.outputs.filter((output) => {
+            if (!output.addresses || output.addresses.length === 0)
+              return false;
+            return output.addresses.some((addr) => !inputAddresses.has(addr));
+          });
+
+          // If we found external outputs, sum them up
+          if (externalOutputs.length > 0) {
+            amountSent = externalOutputs.reduce(
+              (sum, output) => sum + output.value,
+              0
+            );
+          }
+        }
+
+        return amountSent;
+      }
+
+      function handleSharedLinks() {
+        // Check for hash parameters
+        if (window.location.hash) {
+          const hash = window.location.hash.substring(1); // Remove the # character
+
+          if (hash.startsWith("transactions")) {
+            const params = new URLSearchParams(hash.split("?")[1] || "");
+            const address = params.get("address");
+            const txid = params.get("tx");
+
+            // Show the transactions page first
+            showPage("transactionsPage");
+
+            if (address) {
+              document.getElementById("transactionAddr").value = address;
+
+              document.querySelector(
+                'input[name="searchType"][value="balance"]'
+              ).checked = true;
+              toggleSearchType("balance");
+
+              notify("Loading shared address data...", "info");
+
+              setTimeout(() => loadTransactions(), 100);
+            } else if (txid) {
+              document.getElementById("txHash").value = txid;
+
+              document.querySelector(
+                'input[name="searchType"][value="transaction"]'
+              ).checked = true;
+              toggleSearchType("transaction");
+
+              notify("Loading shared transaction data...", "info");
+
+              setTimeout(() => searchTransactionDetails(), 100);
+            }
+          }
+        }
+      }
+
+      // Navigation
+      function showPage(pageId) {
+        if (document.getElementById("directTranslateResult")) {
+          storedTranslateResults.directTranslate = document.getElementById(
+            "directTranslateResult"
+          ).innerHTML;
+        }
+        if (document.getElementById("translateResult")) {
+          storedTranslateResults.recoverTranslate =
+            document.getElementById("translateResult").innerHTML;
+        }
+
+        document
+          .querySelectorAll(".sidebar .nav-link, .nav-btn")
+          .forEach((navItem) => {
+            navItem.classList.remove("active");
+          });
+
+        const sidebarLink = document.querySelector(
+          `.sidebar .nav-link[onclick*="${pageId}"]`
+        );
+        if (sidebarLink) {
+          sidebarLink.classList.add("active");
+        }
+
+        const mobileButton = document.querySelector(
+          `.nav-btn[data-page="${pageId}"]`
+        );
+        if (mobileButton) {
+          mobileButton.classList.add("active");
+        }
+        document
+          .querySelectorAll(".page")
+          .forEach((page) => page.classList.add("hidden"));
+
+        document.getElementById(pageId).classList.remove("hidden");
+
+        if (pageId === "transactionsPage") {
+          const radioInput = document.querySelector(
+            'input[name="searchType"]:checked'
+          );
+          const selectedType = radioInput ? radioInput.value : "balance";
+          toggleSearchType(selectedType);
+        } else {
+          const txElements = [
+            "txOutput",
+            "balanceHistoryResults",
+            "balanceSection",
+            "transactionSection",
+          ];
+          txElements.forEach((id) => {
+            const element = document.getElementById(id);
+            if (element) element.style.display = "none";
+          });
+        }
+      }
+
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebar-overlay");
+
+        sidebar.classList.toggle("active");
+        if (overlay) {
+          overlay.classList.toggle("active");
+        }
+      }
+
+      // Toggle password visibility
+      function togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        const toggleBtn =
+          input.parentElement.querySelector(".password-toggle i");
+
+        if (input.type === "password") {
+          input.type = "text";
+          toggleBtn.className = "fas fa-eye-slash";
+        } else {
+          input.type = "password";
+          toggleBtn.className = "fas fa-eye";
+        }
+      }
+
+      // Clear input
+      function clearInput(inputId) {
+        const input = document.getElementById(inputId);
+        input.value = "";
+        input.focus();
+      }
+
+      // Helper function to create standardized error UI
+      function createErrorUI(title, message, retryAction = null) {
+        const retryButton = retryAction
+          ? `<button class="btn btn-secondary" onclick="${retryAction}">
+              <i class="fas fa-redo"></i> Try Again
+             </button>`
+          : "";
+
+        return `
+          <div class="error-state">
+            <div class="error-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="error-message">
+              <h3>${title}</h3>
+              <p>${message}</p>
+              ${retryButton}
+            </div>
+          </div>`;
+
+        switch (inputId) {
+          case "translateWIF":
+            document.getElementById("translateResult").innerHTML = "";
+            storedTranslateResults.recoverTranslate = null; // Also clear stored results
+            break;
+          case "addressToTranslate":
+            document.getElementById("directTranslateResult").innerHTML = "";
+            storedTranslateResults.directTranslate = null; // Also clear stored results
+            break;
+          case "balanceAddress":
+            document.getElementById("balanceResult").innerHTML = "";
+            break;
+          case "transactionAddr":
+            document.getElementById("balanceSection").style.display = "none";
+            document.getElementById("transactionSection").style.display =
+              "none";
+            // Clear transaction list
+            document.getElementById("txList").innerHTML = "";
+            document.getElementById("paginationInfo").innerText = "";
+            break;
+          case "historyAddr":
+            if (document.getElementById("txHistoryResult")) {
+              document.getElementById("txHistoryResult").innerHTML = "";
+            }
+            if (document.getElementById("txPagination")) {
+              document.getElementById("txPagination").style.display = "none";
+            }
+            if (document.getElementById("txPageInfo")) {
+              document.getElementById("txPageInfo").innerText = "";
+            }
+            break;
+          case "senderAddress":
+          case "privateKey":
+          case "receiverAddress":
+          case "sendAmount":
+            document.getElementById("sendResult").innerHTML = "";
+            break;
+        }
+
+        notify("Input cleared", "success", 1000);
+      }
+
+      function setButtonLoading(buttonId, isLoading) {
+        const button = document.getElementById(buttonId);
+        if (!button) return;
+
+        const btnText = button.querySelector(".btn-text");
+        const btnLoading = button.querySelector(".btn-loading");
+
+        if (isLoading) {
+          button.disabled = true;
+          if (btnText) btnText.style.display = "none";
+          if (btnLoading) btnLoading.style.display = "inline";
+        } else {
+          button.disabled = false;
+          if (btnText) btnText.style.display = "inline";
+          if (btnLoading) btnLoading.style.display = "none";
+        }
+      }
+
+      function generateMultiChain() {
+        setButtonLoading("generateBtn", true);
+        notify("Generating wallet addresses...", "success", 1500);
+
+        try {
+          const result = dogeCrypto.generateMultiChain();
+
+          let formattedResult = `
+            <div class="wallet-generated-success">
+              <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div>
+                <h3>Addresses Generated Successfully!</h3>
+                <p>Your multi-blockchain addresses have been created. All addresses are derived from the same private key.</p>
+              </div>
+            </div>`;
+
+          formattedResult += `
+            <div class="blockchain-section">
+              <div class="blockchain-header">
+                <h4><i class="fas fa-coins"></i> Dogecoin (DOGE)</h4>
+                <div class="blockchain-badge primary">PRIMARY</div>
+              </div>
+              <div class="detail-row">
+                <label><i class="fas fa-map-marker-alt"></i> DOGE Address</label>
+                <div class="value-container">
+                  <code>${result.DOGE.address}</code>
+                  <button class="btn-icon" onclick="navigator.clipboard.writeText('${result.DOGE.address}').then(()=>notify('DOGE address copied','success'))" title="Copy DOGE Address">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="detail-row">
+                <label><i class="fas fa-key"></i> DOGE Private Key</label>
+                <div class="value-container">
+                  <code>${result.DOGE.privateKey}</code>
+                  <button class="btn-icon" onclick="navigator.clipboard.writeText('${result.DOGE.privateKey}').then(()=>notify('Private key copied','success'))" title="Copy Private Key">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                </div>
+              </div>
+            </div>`;
+
+          for (const chain of ["FLO", "BTC", "LTC"]) {
+            if (result[chain]) {
+              formattedResult += `
+                <div class="blockchain-section">
+                  <div class="blockchain-header">
+                    <h4><i class="fas fa-coins"></i> ${chain}</h4>
+                    <div class="blockchain-badge secondary">SECONDARY</div>
+                  </div>
+                  <div class="detail-row">
+                    <label><i class="fas fa-map-marker-alt"></i> ${chain} Address</label>
+                    <div class="value-container">
+                      <code>${result[chain].address}</code>
+                      <button class="btn-icon" onclick="navigator.clipboard.writeText('${result[chain].address}').then(()=>notify('${chain} address copied','success'))" title="Copy ${chain} Address">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="detail-row">
+                    <label><i class="fas fa-key"></i> ${chain} Private Key</label>
+                    <div class="value-container">
+                      <code>${result[chain].privateKey}</code>
+                      <button class="btn-icon" onclick="navigator.clipboard.writeText('${result[chain].privateKey}').then(()=>notify('Private key copied','success'))" title="Copy Private Key">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>`;
+            }
+          }
+
+          formattedResult += `
+            <div class="wallet-security-notice">
+              <div class="notice-icon">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+              <div class="notice-content">
+                <h4>Security Reminder</h4>
+                <p>Keep your private key safe and secure. Never share it with anyone. Consider backing it up in a secure location.</p>
+              </div>
+            </div>`;
+
+          document.getElementById("multiResult").innerHTML = formattedResult;
+          notify("Addresses generated successfully!", "success");
+        } catch (err) {
+          document.getElementById("multiResult").innerHTML = `
+            <div class="error-state">
+              <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <h3>Generation Failed</h3>
+              <p>Error: ${err.message}</p>
+              <button class="btn btn-secondary" onclick="generateMultiChain()">
+                <i class="fas fa-redo"></i> Try Again
+              </button>
+            </div>`;
+          notify(err.message, "error");
+        } finally {
+          setButtonLoading("generateBtn", false);
+        }
+      }
+
+      // Function to validate private key format
+      function isValidPrivateKeyFormat(key) {
+        if (!key || typeof key !== "string") return false;
+
+        // Check length (most WIF private keys are 51-52 chars)
+        if (key.length < 50 || key.length > 55) return false;
+
+        // Check for invalid Base58 characters
+        const base58Regex =
+          /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
+        if (!base58Regex.test(key)) return false;
+
+        // Check for common prefixes for supported chains
+        // BTC: 5, K, L
+        // DOGE: 6, Q
+        // FLO: 6, R
+        // LTC: 6, T
+        const validPrefixes = ["5", "6", "K", "L", "Q", "R", "T"];
+        if (!validPrefixes.some((prefix) => key.startsWith(prefix))) {
+          return false;
+        }
+
+        return true;
+      }
+
+      function translateAddress() {
+        const wif = document.getElementById("translateWIF").value.trim();
+        if (!wif) {
+          notify("Please enter a private key", "error");
+          return;
+        }
+
+        // Validate private key format before attempting to use it
+        if (!isValidPrivateKeyFormat(wif)) {
+          document.getElementById("translateResult").innerHTML = createErrorUI(
+            "Invalid Private Key Format",
+            "The text entered doesn't appear to be a valid private key for DOGE, BTC, FLO, or LTC.<br>Please check your input and try again."
+          );
+          notify("Invalid private key format", "error");
+          return;
+        }
+
+        setButtonLoading("recoverBtn", true);
+
+        try {
+          const result = dogeCrypto.generateMultiChain(wif);
+
+          let formattedResult = `
+            <div class="wallet-generated-success">
+              <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="success-message">
+                <h3>Addresses Recovered Successfully!</h3>
+                <p>All blockchain addresses have been recovered from your private key.</p>
+              </div>
+            </div>`;
+
+          for (const chain of ["DOGE", "FLO", "BTC", "LTC"]) {
+            if (result[chain]) {
+              formattedResult += `
+                <div class="blockchain-section">
+                  <div class="blockchain-header">
+                    <h4><i class="fas fa-coins"></i> ${chain}</h4>
+                    <div class="blockchain-badge">PRIMARY</div>
+                  </div>
+                  <div class="detail-row">
+                    <label><i class="fas fa-map-marker-alt"></i> ${chain} Address</label>
+                    <div class="value-container">
+                      <code>${result[chain].address}</code>
+                      <button class="btn-icon" onclick="navigator.clipboard.writeText('${result[chain].address}').then(()=>notify('${chain} address copied','success'))" title="Copy ${chain} Address">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="detail-row">
+                    <label><i class="fas fa-key"></i> ${chain} Private Key</label>
+                    <div class="value-container">
+                      <code>${result[chain].privateKey}</code>
+                      <button class="btn-icon" onclick="navigator.clipboard.writeText('${result[chain].privateKey}').then(()=>notify('Private key copied','success'))" title="Copy Private Key">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>`;
+            }
+          }
+
+          document.getElementById("translateResult").innerHTML =
+            formattedResult;
+
+          storedTranslateResults.recoverTranslate = formattedResult;
+          notify("Addresses recovered successfully!", "success");
+        } catch (err) {
+          console.error("Recovery error:", err);
+
+          let errorMessage = "Invalid private key or format not supported.";
+          if (err.message && err.message.includes("Invalid")) {
+            errorMessage = err.message;
+          }
+
+          document.getElementById("translateResult").innerHTML = `
+            <div class="error-state">
+              <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="error-message">
+                <h3>Recovery Failed</h3>
+                <p>${errorMessage}</p>
+                <p>Please ensure you've entered a valid private key for DOGE, BTC, FLO, or LTC.</p>
+                <button class="btn btn-secondary" onclick="translateAddress()">
+                  <i class="fas fa-redo"></i> Try Again
+                </button>
+              </div>
+            </div>`;
+          notify("Failed to recover addresses: " + errorMessage, "error");
+        } finally {
+          setButtonLoading("recoverBtn", false);
+        }
+      }
+
+      function translateDirectAddress() {
+        const address = document
+          .getElementById("addressToTranslate")
+          .value.trim();
+        if (!address) {
+          notify("Please enter an address", "error");
+          return;
+        }
+
+        // Basic validation for address format
+        const isValidFormat =
+          address.match(/^[A-Z0-9]{26,45}$/i) || address.startsWith("bc1");
+        if (!isValidFormat) {
+          document.getElementById("directTranslateResult").innerHTML =
+            createErrorUI(
+              "Invalid Address Format",
+              "The text entered doesn't appear to be a valid address for DOGE, BTC, FLO, or LTC.<br>Please check your input and try again."
+            );
+          notify("Invalid address format", "error");
+          return;
+        }
+
+        setButtonLoading("translateBtn", true);
+
+        try {
+          const result = dogeCrypto.translateAddress(address);
+
+          let formattedResult = `
+            <div class="wallet-generated-success  ">
+              <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="success-message">
+                <h3>Address Translated Successfully!</h3>
+                <p>Equivalent addresses on all supported blockchains are shown below.</p>
+              </div>
+            </div>`;
+
+          for (const chain of ["DOGE", "FLO", "BTC", "LTC"]) {
+            if (result[chain]) {
+              formattedResult += `
+                <div class="blockchain-section  " style="animation-delay: ${
+                  ["DOGE", "FLO", "BTC", "LTC"].indexOf(chain) * 0.1
+                }s">
+                  <div class="blockchain-header">
+                    <h4><i class="fas fa-coins"></i> ${chain}</h4>
+                    <div class="blockchain-badge">TRANSLATION</div>
+                  </div>
+                  <div class="detail-row">
+                    <label><i class="fas fa-map-marker-alt"></i> ${chain} Address</label>
+                    <div class="value-container">
+                      <code>${result[chain]}</code>
+                      <button class="btn-icon" onclick="navigator.clipboard.writeText('${
+                        result[chain]
+                      }').then(()=>notify('${chain} address copied','success'))" title="Copy ${chain} Address">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>`;
+            }
+          }
+
+          document.getElementById("directTranslateResult").innerHTML =
+            formattedResult;
+          storedTranslateResults.directTranslate = formattedResult;
+          notify("Address translated successfully!", "success");
+        } catch (err) {
+          document.getElementById("directTranslateResult").innerHTML =
+            createErrorUI(
+              "Translation Failed",
+              `Error: ${err.message}`,
+              "translateDirectAddress()"
+            );
+          notify("Failed to translate address: " + err.message, "error");
+        } finally {
+          setButtonLoading("translateBtn", false);
+        }
+      }
+
+      // Dogecoin API Functions
+      function checkDogeBalance() {
+        const input = document.getElementById("balanceAddress").value.trim();
+        if (!input) {
+          notify("Please enter a Dogecoin address or private key", "error");
+          return;
+        }
+
+        let address = input;
+
+        if (input.length >= 40 && !input.startsWith("D")) {
+          try {
+            // Attempt to derive address from private key
+            address = dogeCrypto.generateMultiChain(input).DOGE.address;
+            notify("Using address derived from private key", "success");
+          } catch (error) {
+            console.error(
+              "[ERROR] Failed to derive address from input:",
+              error
+            );
+          }
+        }
+
+        setButtonLoading("balanceBtn", true);
+        document.getElementById("balanceResult").innerHTML = `
+          <div class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading balance...</p>
+          </div>
+        `;
+
+        dogeBlockchainAPI
+          .getBalance(address)
+          .then((balance) => {
+            document.getElementById("balanceResult").innerHTML = `
+              <div class="balance-result">
+                <div class="balance-header">
+                  <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+                  <h3>Balance Retrieved</h3>
+                </div>
+                <div class="balance-amount">
+                  <span class="balance-value">${balance}</span>
+                  <span class="balance-currency">DOGE</span>
+                </div>
+                <div class="balance-address">
+                  <span class="address-label">Address:</span>
+                  <span class="address-value">${address}</span>
+                </div>
+                <div class="balance-actions">
+                  <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${address}').then(()=>notify('Address copied','success'))">
+                    <i class="fas fa-copy"></i> Copy Address
+                  </button>
+                  <button class="btn btn-secondary" onclick="document.getElementById('txHistoryAddress').value='${address}'; showPage('historyPage'); getDogeTransactions();">
+                    <i class="fas fa-history"></i> View Transactions
+                  </button>
+                </div>
+              </div>
+            `;
+            notify(`Balance: ${balance} DOGE`, "success");
+          })
+          .catch((error) => {
+            console.error("Error using getBalance:", error);
+            document.getElementById("balanceResult").innerHTML = `
+              <div class="error-state">
+                <div class="error-icon">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Failed to retrieve balance</h3>
+                <p>Error: ${error.message || "Unknown error"}</p>
+                <button class="btn btn-secondary" onclick="checkDogeBalance()">
+                  <i class="fas fa-redo"></i> Try Again
+                </button>
+              </div>
+            `;
+            notify("Failed to retrieve balance", "error");
+          })
+          .finally(() => {
+            setButtonLoading("balanceBtn", false);
+          });
+      }
+
+      // Transaction History & Balance (Combined)
+      function loadTransactions() {
+        const input = document.getElementById("transactionAddr").value.trim();
+        if (!input) {
+          notify("Please enter a Dogecoin address or private key", "error");
+          return;
+        }
+
+        // Determine if the input is an address or a private key
+        let address = input;
+
+        // Check if input might be a private key (basic validation)
+        if (input.length >= 40 && !input.startsWith("D")) {
+          try {
+            // Attempt to derive address from private key
+            address = dogeCrypto.generateMultiChain(input).DOGE.address;
+            notify("Using address derived from private key", "success");
+          } catch (error) {
+            console.error(
+              "[ERROR] Failed to derive address from input:",
+              error
+            );
+          }
+        }
+
+        setButtonLoading("loadTransactions", true);
+
+        // Reset pagination
+        currentTxOffset = 0;
+        currentTxAddress = address;
+
+        // First, load balance
+        document.getElementById("balanceSection").style.display = "none";
+        document.getElementById("transactionSection").style.display = "none";
+
+        // Get the search type
+        const searchType =
+          document.querySelector('input[name="searchType"]:checked')?.value ||
+          "balance";
+
+        dogeBlockchainAPI
+          .getBalance(address)
+          .then((balance) => {
+            // Set balance values
+            document.getElementById("balanceValue").textContent =
+              balance.toFixed(8);
+            document.getElementById("displayedAddress").textContent = address;
+
+            document.getElementById("balanceSection").style.display = "block";
+
+            fetchTransactionsWithPagination();
+
+            document
+              .getElementById("balanceSection")
+              .scrollIntoView({ behavior: "smooth" });
+
+            showNotification(`Balance: ${balance.toFixed(8)} DOGE`, "success");
+          })
+          .catch((error) => {
+            console.error("Balance error:", error);
+            showNotification(
+              "Failed to retrieve balance: " +
+                (error.message || "Unknown error"),
+              "error"
+            );
+
+            fetchTransactionsWithPagination();
+          });
+      }
+
+      function redirectToHistoryWithBalance() {
+        const address = document.getElementById("balanceAddress").value.trim();
+        if (!address) {
+          notify("Please enter a Dogecoin address", "error");
+          return;
+        }
+
+        document.getElementById("transactionAddr").value = address;
+        showPage("transactionsPage");
+        loadTransactions();
+      }
+
+      function loadDogeHistory() {
+        const address = document.getElementById("historyAddr").value.trim();
+        if (!address) {
+          notify("Please enter a Dogecoin address", "error");
+          return;
+        }
+
+        document.getElementById("transactionAddr").value = address;
+        showPage("transactionsPage");
+        loadTransactions();
+      }
+
+      function fetchTransactionsWithPagination() {
+        // Make sure the transaction section is visible
+        document.getElementById("transactionSection").style.display = "block";
+
+        
+
+        document.getElementById("paginationInfo").innerText = "";
+
+        dogeBlockchainAPI
+          .getDogeTransactions(currentTxAddress, {
+            limit: txPerPage,
+            offset: currentTxOffset,
+          })
+          .then((result) => {
+            if (!result.transactions || result.transactions.length === 0) {
+              document.getElementById("txList").innerHTML = `
+                <div class="no-transactions">
+                  <i class="fas fa-search"></i>
+                  <h3>No Transactions Found</h3>
+                  <p>No transactions were found for this Dogecoin address.</p>
+                </div>
+              `;
+              setButtonLoading("loadTransactions", false);
+              return;
+            }
+
+            totalTxCount = result.total || 0;
+            const currentPage = Math.floor(currentTxOffset / txPerPage) + 1;
+            const totalPages = Math.ceil(totalTxCount / txPerPage);
+
+            let transactionsHTML = "";
+
+            result.transactions.forEach((tx) => {
+              let numericValue = parseFloat(tx.value);
+              let valueDisplay = "";
+              let txType = "";
+              let txClass = "";
+
+              if (numericValue > 0) {
+                // Coins received
+                valueDisplay = "+" + numericValue.toFixed(8) + " DOGE";
+                txType = "Received";
+                txClass = "incoming";
+              } else if (numericValue < 0) {
+                // Coins sent
+                valueDisplay = numericValue.toFixed(8) + " DOGE";
+                txType = "Sent";
+                txClass = "outgoing";
+              } else {
+                valueDisplay = numericValue.toFixed(8) + " DOGE (fee)";
+                txType = "Self / Fee";
+                txClass = "";
+              }
+
+              const txDate =
+                tx.formattedTime || new Date(tx.time * 1000).toLocaleString();
+
+              transactionsHTML += `
+                <div class="transaction-card ${txClass}" data-tx-type="${txType.toLowerCase()}">
+                  <div class="tx-main">
+                    <div class="tx-icon">
+                      <i class="fas ${
+                        txClass === "incoming" ? "fa-arrow-down" : "fa-arrow-up"
+                      }"></i>
+                    </div>
+                    <div class="tx-info">
+                      <div class="tx-header">
+                        <div class="tx-direction">
+                          ${txType}
+                        </div>
+                        <div class="tx-right-header">
+                          <span class="tx-date">${txDate}</span>
+                          <span class="tx-status ${
+                            tx.confirmations > 0 ? "success" : "pending"
+                          }">
+                            ${tx.confirmations > 0 ? "CONFIRMED" : "PENDING"}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="tx-amount ${txClass}">${valueDisplay}</div>
+                    </div>
+                  </div>
+                  <div class="tx-addresses">
+                    <div class="tx-field">
+                      <div class="tx-label">From:</div>
+                      <div class="tx-value">
+                        ${
+                          tx.fromAddresses && tx.fromAddresses.length > 0
+                            ? tx.fromAddresses[0]
+                            : "Unknown sender"
+                        }
+                      </div>
+                    </div>
+                    <div class="tx-field">
+                      <div class="tx-label">To:</div>
+                      <div class="tx-value">
+                        ${
+                          tx.toAddresses && tx.toAddresses.length > 0
+                            ? (() => {
+                                // Filter out duplicate addresses
+                                const filteredAddresses = tx.toAddresses.filter(
+                                  (addr) => {
+                                    return (
+                                      !tx.fromAddresses ||
+                                      !tx.fromAddresses.includes(addr)
+                                    );
+                                  }
+                                );
+
+                                if (filteredAddresses.length > 0) {
+                                  return filteredAddresses[0];
+                                } else if (tx.type === "self") {
+                                  return "Same as sender (self-transaction)";
+                                } else {
+                                  return "Unknown recipient";
+                                }
+                              })()
+                            : "Unknown recipient"
+                        }
+                      </div>
+                    </div>
+                    <div class="tx-field">
+                      <div class="tx-label">Tx:</div>
+                      <div class="tx-value tx-hash-value">
+                        ${tx.txid.substring(0, 12)}...${tx.txid.substring(
+                tx.txid.length - 12
+              )}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="confirmation-count">
+                    ${tx.confirmations} confirmation${
+                tx.confirmations !== 1 ? "s" : ""
+              }
+                  </div>
+                </div>
+              `;
+            });
+
+            document.getElementById("txList").innerHTML = transactionsHTML;
+
+            document.getElementById("paginationInfo").innerHTML = `Showing ${
+              currentTxOffset + 1
+            }-${Math.min(
+              currentTxOffset + result.transactions.length,
+              totalTxCount
+            )} of ${totalTxCount} transactions`;
+
+            updatePaginationControls();
+            notify("Transactions loaded successfully", "success");
+          })
+          .catch((error) => {
+            console.error("Transaction error:", error);
+            document.getElementById("txList").innerHTML = `
+              <div class="error-state">
+                <div class="error-icon">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Failed to fetch transactions</h3>
+                <p>Error: ${error.message || "Unknown error"}</p>
+                <button class="btn btn-secondary" onclick="loadTransactions()">
+                  <i class="fas fa-redo"></i> Try Again
+                </button>
+              </div>
+            `;
+            notify("Failed to fetch transactions", "error");
+          })
+          .finally(() => {
+            setButtonLoading("loadTransactions", false);
+          });
+      }
+
+      function filterTransactions(filter) {
+        document.querySelectorAll(".filter-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        document
+          .querySelector(`.filter-btn[data-filter="${filter}"]`)
+          .classList.add("active");
+
+        // Filter transactions
+        const txCards = document.querySelectorAll(".transaction-card");
+
+        txCards.forEach((card) => {
+          const txType = card.getAttribute("data-tx-type").toLowerCase();
+
+          if (
+            filter === "all" ||
+            (filter === "received" && txType === "received") ||
+            (filter === "sent" && txType === "sent")
+          ) {
+            card.style.display = "block";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      }
+
+      // Function to show confirmation popup
+      function showConfirmationPopup(
+        senderAddress,
+        receiverAddress,
+        amount,
+        onConfirm
+      ) {
+        document.getElementById("confirmAmount").textContent = `${amount} DOGE`;
+        document.getElementById("confirmFrom").textContent = senderAddress;
+        document.getElementById("confirmTo").textContent = receiverAddress;
+
+        const confirmBtn = document.getElementById("confirmSendBtn");
+
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+        newConfirmBtn.addEventListener("click", function () {
+          closeConfirmationPopup();
+          onConfirm();
+        });
+
+        // Show the popup
+        document.getElementById("confirmationPopup").style.display = "block";
+
+        document.body.style.overflow = "hidden";
+      }
+
+      // Function to close confirmation popup
+      function closeConfirmationPopup() {
+        document.getElementById("confirmationPopup").style.display = "none";
+        document.body.style.overflow = "auto";
+      }
+
+      // Send Dogecoin using RPC method
+      function sendDogeRPC() {
+        let privateKey = document.getElementById("privateKey").value.trim();
+        const receiverAddress = document
+          .getElementById("receiverAddress")
+          .value.trim();
+        const sendAmount = parseFloat(
+          document.getElementById("sendAmount").value
+        );
+
+        // Automatically derive the sender address from private key
+        let senderAddress;
+        try {
+          senderAddress =
+            dogeCrypto.generateMultiChain(privateKey).DOGE.address;
+        } catch (error) {
+          notify("Invalid private key format", "error");
+          return;
+        }
+        let dogeprivkey =
+          dogeCrypto.generateMultiChain(privateKey).DOGE.privateKey;
+        if (!privateKey || !receiverAddress) {
+          notify("Please fill all required fields", "error");
+          return;
+        }
+
+        if (isNaN(sendAmount) || sendAmount <= 0) {
+          notify("Please enter a valid amount", "error");
+          return;
+        }
+
+        // Show confirmation popup instead of proceeding directly
+        showConfirmationPopup(
+          senderAddress,
+          receiverAddress,
+          sendAmount,
+          function () {
+            setButtonLoading("sendBtn", true);
+            
+
+            dogeBlockchainAPI
+              .sendDogecoinRPC(
+                senderAddress,
+                receiverAddress,
+                sendAmount,
+                dogeprivkey
+              )
+              .then((txid) => {
+                document.getElementById("sendResult").innerHTML = `
+                <div class="transaction-success">
+                  <div class="success-animation">
+                    <div class="checkmark-circle">
+                      <div class="checkmark-circle-bg"></div>
+                      <i class="fas fa-check checkmark"></i>
+                    </div>
+                  </div>
+                  <h3>Transaction Successful!</h3>
+                  <p class="success-message">Your DOGE have been successfully sent.</p>
+                  <div class="tx-details-card">
+                    <div class="tx-detail-item">
+                      <div class="tx-detail-label"><i class="fas fa-coins"></i> Amount</div>
+                      <div class="tx-detail-value">
+                        <span>${sendAmount} DOGE</span>
+                        <button class="copy-small" onclick="navigator.clipboard.writeText('${sendAmount}').then(()=>notify('Amount copied','success'))" title="Copy Amount">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="tx-detail-item">
+                      <div class="tx-detail-label"><i class="fas fa-wallet"></i> From</div>
+                      <div class="tx-detail-value">
+                        <span>${senderAddress}</span>
+                        <button class="copy-small" onclick="navigator.clipboard.writeText('${senderAddress}').then(()=>notify('Sender address copied','success'))" title="Copy Address">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="tx-detail-item">
+                      <div class="tx-detail-label"><i class="fas fa-user"></i> To</div>
+                      <div class="tx-detail-value">
+                        <span>${receiverAddress}</span>
+                        <button class="copy-small" onclick="navigator.clipboard.writeText('${receiverAddress}').then(()=>notify('Recipient address copied','success'))" title="Copy Address">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="tx-detail-item">
+                      <div class="tx-detail-label"><i class="fas fa-hashtag"></i> Transaction ID</div>
+                      <div class="tx-detail-value">
+                        <span>${txid}</span>
+                        <button class="copy-small" onclick="navigator.clipboard.writeText('${txid}').then(()=>notify('Transaction ID copied','success'))" title="Copy Transaction ID">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                 
+                </div>
+              `;
+                notify("Transaction successful!", "success");
+
+                document.getElementById("sendAmount").value = "";
+              })
+              .catch((error) => {
+                console.error("Transaction error:", error);
+                document.getElementById("sendResult").innerHTML =
+                  createTransactionErrorUI(
+                    "Transaction Failed",
+                    "Your DOGE transaction could not be processed.",
+                    `Error Details: ${
+                      error.message || "Unknown error"
+                    } (${new Date().toLocaleString()})`,
+                    "sendDogeRPC()"
+                  );
+                notify(
+                  "Transaction failed: " + (error.message || "Unknown error"),
+                  "error"
+                );
+              })
+              .finally(() => {
+                setButtonLoading("sendBtn", false);
+              });
+          }
+        );
+      }
+
+      function createTransactionErrorUI(
+        errorTitle,
+        errorMessage,
+        errorDetails = null,
+        retryAction = null
+      ) {
+        const retryButton = retryAction
+          ? `<button class="btn btn-secondary" onclick="${retryAction}">
+              <i class="fas fa-redo"></i> Try Again
+             </button>`
+          : "";
+
+        const errorDetailsSection = errorDetails
+          ? `<div class="error-details">${errorDetails}</div>`
+          : "";
+
+        return `
+          <div class="transaction-error">
+            <div class="error-animation">
+              <div class="error-circle">
+                <i class="fas fa-times error-icon"></i>
+              </div>
+            </div>
+            <h3>${errorTitle}</h3>
+            <p class="error-message">${errorMessage}</p>
+            ${errorDetailsSection}
+            <div class="tx-actions">
+              ${retryButton}
+            </div>
+          </div>
+        `;
+      }
+
+      // Pagination functions for transaction history
+      function loadPreviousTransactions() {
+        if (currentTxOffset >= txPerPage) {
+          currentTxOffset -= txPerPage;
+          document
+            .getElementById("transactionSection")
+            .scrollIntoView({ behavior: "smooth" });
+          fetchTransactionsWithPagination();
+        }
+      }
+
+      function loadNextTransactions() {
+        if (currentTxOffset + txPerPage < totalTxCount) {
+          currentTxOffset += txPerPage;
+          document
+            .getElementById("transactionSection")
+            .scrollIntoView({ behavior: "smooth" });
+          fetchTransactionsWithPagination();
+        }
+      }
+
+      function updatePaginationControls() {
+        const currentPage = Math.floor(currentTxOffset / txPerPage) + 1;
+        const totalPages = Math.ceil(totalTxCount / txPerPage);
+
+        // Generate page numbers
+        let pageNumbersHTML = "";
+        const displayMax = 5; // Maximum number of page numbers to display
+
+        const startPage = Math.max(1, currentPage - Math.floor(displayMax / 2));
+        const endPage = Math.min(totalPages, startPage + displayMax - 1);
+
+        if (startPage > 1) {
+          pageNumbersHTML += `
+            <button class="page-number" onclick="goToPage(1)">1</button>
+            ${startPage > 2 ? '<span class="page-ellipsis">...</span>' : ""}
+          `;
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          pageNumbersHTML += `
+            <button class="page-number ${i === currentPage ? "active" : ""}" 
+                   onclick="goToPage(${i})">${i}</button>
+          `;
+        }
+
+        if (endPage < totalPages) {
+          pageNumbersHTML += `
+            ${
+              endPage < totalPages - 1
+                ? '<span class="page-ellipsis">...</span>'
+                : ""
+            }
+            <button class="page-number" onclick="goToPage(${totalPages})">${totalPages}</button>
+          `;
+        }
+
+        document.getElementById("pageNumbers").innerHTML = pageNumbersHTML;
+
+        // Enable/disable buttons based on current position
+        document.getElementById("prevBtn").disabled = currentTxOffset === 0;
+        document.getElementById("nextBtn").disabled =
+          currentTxOffset + txPerPage >= totalTxCount;
+      }
+
+      // Go to specific page
+      function goToPage(page) {
+        currentTxOffset = (page - 1) * txPerPage;
+        document
+          .getElementById("transactionSection")
+          .scrollIntoView({ behavior: "smooth" });
+        fetchTransactionsWithPagination();
+      }
+
+      function shareAddress() {
+        const address = document.getElementById("displayedAddress").textContent;
+        if (!address) {
+          notify("No address to share", "error");
+          return;
+        }
+
+        const url = new URL(window.location.href);
+        url.hash = `#transactions?address=${address}`;
+        copyToClipboard(url.toString(), "Address link");
+      }
+
+      function shareTransactionLink(txid) {
+        if (!txid) {
+          notify("No transaction ID to share", "error");
+          return;
+        }
+
+        const url = new URL(window.location.href);
+        url.hash = `#transactions?tx=${txid}`;
+        copyToClipboard(url.toString(), "Transaction link");
+      }
+
+      // Copy to clipboard function
+      function copyToClipboard(url, type) {
+        navigator.clipboard
+          .writeText(url)
+          .then(() => {
+            notify(`${type} copied to clipboard!`, "success");
+          })
+          .catch((err) => {
+            console.error("Clipboard error:", err);
+            notify("Unable to copy link", "error");
+          });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const perPageSelect = document.getElementById("perPageSelect");
+        if (perPageSelect) {
+          perPageSelect.addEventListener("change", function () {
+            txPerPage = parseInt(this.value, 10);
+            currentTxOffset = 0;
+            if (currentTxAddress) {
+              fetchTransactionsWithPagination();
+            }
+          });
+        }
+      });
+      // Search Transaction Details by TXID
+      function searchTransactionDetails() {
+        const txid = document.getElementById("txHash").value.trim();
+
+        if (!txid) {
+          notify("Please enter a transaction ID", "error");
+          return;
+        }
+
+        setButtonLoading("txSearchBtn", true);
+
+        // First, ensure the txOutput element exists
+        let txOutputElement = document.getElementById("txOutput");
+        if (!txOutputElement) {
+          txOutputElement = document.createElement("div");
+          txOutputElement.id = "txOutput";
+          txOutputElement.className = "transaction-result";
+          document
+            .getElementById("transactionsPage")
+            .appendChild(txOutputElement);
+        }
+
+        txOutputElement.style.display = "block";
+
+        if (document.getElementById("balanceResult")) {
+          document.getElementById("balanceResult").innerHTML = "";
+        }
+        dogeBlockchainAPI
+          .getTransactionDetails(txid)
+          .then((tx) => {
+            const fee = (tx.totalInput - tx.totalOutput).toFixed(8);
+            const txTime = tx.blockTime || "Pending";
+            const txStatus = tx.confirmations > 0 ? "Confirmed" : "Pending";
+            const txStatusClass = tx.confirmations > 0 ? "success" : "pending";
+
+            let txDetailsHTML = `
+              <div class="card transaction-details">
+                <div class="transaction-header">
+                  <h3><i class="fas fa-exchange-alt"></i> Transaction Details</h3>
+                  <button onclick="shareTransactionLink('${
+                    tx.txid
+                  }')" class="btn-icon share-btn" title="Copy Transaction Link">
+                    <i class="fas fa-share-alt"></i>
+                  </button>
+                </div>
+                <div class="tx-main-info">
+                  <div class="tx-detail-row">
+                    <label>Transaction ID:</label>
+                    <div class="tx-detail-value">
+                      <span>${tx.txid}</span>
+                      <button onclick="navigator.clipboard.writeText('${
+                        tx.txid
+                      }').then(()=>notify('Transaction ID copied','success'))" class="copy-btn" title="Copy TX ID">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div class="tx-detail-row">
+                    <label>Status:</label>
+                    <div class="tx-detail-value">
+                      <span class="tx-status ${txStatusClass}">${txStatus}</span>
+                      <span class="confirmations">${
+                        tx.confirmations
+                      } confirmation${tx.confirmations !== 1 ? "s" : ""}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="tx-detail-row">
+                    <label>Timestamp:</label>
+                    <div class="tx-detail-value">${txTime}</div>
+                  </div>
+                  
+                  <div class="tx-detail-row">
+                    <label>Block:</label>
+                    <div class="tx-detail-value">
+                      ${tx.blockHeight || "Unconfirmed"}
+                      ${
+                        tx.blockHash
+                          ? `<span class="tx-blockhash">(${tx.blockHash.substring(
+                              0,
+                              10
+                            )}...)</span>`
+                          : ""
+                      }
+                    </div>
+                  </div>
+                  
+                  <div class="tx-detail-row">
+                    <label>Size:</label>
+                    <div class="tx-detail-value">${tx.size} bytes</div>
+                  </div>
+                  
+                  <div class="tx-detail-row">
+                    <label>Fee:</label>
+                    <div class="tx-detail-value">${fee} DOGE</div>
+                  </div>
+                  
+                  <div class="tx-detail-row">
+                    <label>Total Input:</label>
+                    <div class="tx-detail-value">${tx.totalInput.toFixed(
+                      8
+                    )} DOGE</div>
+                  </div>
+                  
+                  <div class="tx-detail-row">
+                    <label>Total Output:</label>
+                    <div class="tx-detail-value">${tx.totalOutput.toFixed(
+                      8
+                    )} DOGE</div>
+                  </div>
+                  <div class="tx-detail-row highlight">
+                    <label>Amount Sent:</label>
+                    <div class="tx-detail-value">${calculateAmountSent(
+                      tx
+                    ).toFixed(8)} DOGE</div>
+                  </div>
+                </div>
+                
+                <!-- Transaction Inputs -->
+                <div class="tx-section">
+                  <h4>Inputs (${tx.inputs.length})</h4>
+                  <div class="tx-inputs">`;
+
+            // Add inputs
+            tx.inputs.forEach((input, index) => {
+              txDetailsHTML += `
+                <div class="tx-io-item">
+                  <div class="tx-io-header">
+                    <span class="tx-io-index">#${index}</span>
+                    <span class="tx-io-value">${input.value.toFixed(
+                      8
+                    )} DOGE</span>
+                  </div>
+                  <div class="tx-io-addresses">`;
+
+              if (input.addresses && input.addresses.length > 0) {
+                input.addresses.forEach((addr) => {
+                  txDetailsHTML += `
+                    <div class="tx-io-address">
+                      <span class="address-text">${addr}</span>
+                      <button onclick="navigator.clipboard.writeText('${addr}').then(()=>notify('Address copied','success'))" class="copy-btn" title="Copy Address">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>`;
+                });
+              } else {
+                txDetailsHTML += `<div class="tx-io-address">No address data available</div>`;
+              }
+
+              txDetailsHTML += `
+                  </div>
+                </div>`;
+            });
+
+            txDetailsHTML += `
+                  </div>
+                </div>
+                
+                <!-- Transaction Outputs -->
+                <div class="tx-section">
+                  <h4>Outputs (${tx.outputs.length})</h4>
+                  <div class="tx-outputs">`;
+
+            // Add outputs
+            tx.outputs.forEach((output, index) => {
+              txDetailsHTML += `
+                <div class="tx-io-item">
+                  <div class="tx-io-header">
+                    <span class="tx-io-index">#${output.n}</span>
+                    <span class="tx-io-value">${output.value.toFixed(
+                      8
+                    )} DOGE</span>
+                    
+                  </div>
+                  <div class="tx-io-addresses">`;
+
+              if (output.addresses && output.addresses.length > 0) {
+                output.addresses.forEach((addr) => {
+                  txDetailsHTML += `
+                    <div class="tx-io-address">
+                      <span class="address-text">${addr}</span>
+                      <button onclick="navigator.clipboard.writeText('${addr}').then(()=>notify('Address copied','success'))" class="copy-btn" title="Copy Address">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>`;
+                });
+              } else {
+                txDetailsHTML += `<div class="tx-io-address">No address data available</div>`;
+              }
+
+              txDetailsHTML += `
+                  </div>
+                </div>`;
+            });
+
+            txDetailsHTML += `
+                  </div>
+                </div>
+                
+                <!-- Transaction actions section removed as the share button is now in the header -->
+              </div>
+            `;
+
+            let txOutputElement = document.getElementById("txOutput");
+            if (!txOutputElement) {
+              txOutputElement = document.createElement("div");
+              txOutputElement.id = "txOutput";
+              txOutputElement.className = "transaction-result";
+              document
+                .getElementById("transactionsPage")
+                .appendChild(txOutputElement);
+            }
+
+            txOutputElement.innerHTML = txDetailsHTML;
+            notify("Transaction details loaded successfully", "success");
+          })
+          .catch((error) => {
+            let txOutputElement = document.getElementById("txOutput");
+            if (!txOutputElement) {
+              txOutputElement = document.createElement("div");
+              txOutputElement.id = "txOutput";
+              txOutputElement.className = "transaction-result";
+              document
+                .getElementById("transactionsPage")
+                .appendChild(txOutputElement);
+            }
+
+            txOutputElement.innerHTML = createErrorUI(
+              "Transaction Search Failed",
+              `Error: ${error.message || "Unable to find transaction"}`,
+              "searchTransactionDetails()"
+            );
+            notify("Failed to find transaction: " + error.message, "error");
+          })
+          .finally(() => {
+            setButtonLoading("txSearchBtn", false);
+          });
+      }
+
+      // Function to toggle between balance search and transaction search
+      function toggleSearchType(type) {
+        const transactionsPage = document.getElementById("transactionsPage");
+        if (transactionsPage.classList.contains("hidden")) {
+          return;
+        }
+
+        const radioContainers = document.querySelectorAll(
+          ".radio-button-container"
+        );
+
+        const radioInput = document.querySelector(
+          `input[name="searchType"][value="${type}"]`
+        );
+        if (radioInput) {
+          radioInput.checked = true;
+        }
+
+        radioContainers.forEach((container) => {
+          container.classList.remove("active");
+          if (container.querySelector(`input[value="${type}"]`)) {
+            container.classList.add("active");
+          }
+        });
+
+        let txOutputElement = document.getElementById("txOutput");
+        if (!txOutputElement) {
+          txOutputElement = document.createElement("div");
+          txOutputElement.id = "txOutput";
+          txOutputElement.className = "transaction-result";
+          document
+            .getElementById("transactionsPage")
+            .appendChild(txOutputElement);
+        }
+
+        if (type === "balance") {
+          const elements = {
+            balanceHistorySearch: document.getElementById(
+              "balanceHistorySearch"
+            ),
+            transactionSearch: document.getElementById("transactionSearch"),
+            balanceHistoryResults: document.getElementById(
+              "balanceHistoryResults"
+            ),
+            balanceSection: document.getElementById("balanceSection"),
+            transactionSection: document.getElementById("transactionSection"),
+          };
+
+          if (elements.balanceHistorySearch)
+            elements.balanceHistorySearch.style.display = "block";
+          if (elements.transactionSearch)
+            elements.transactionSearch.style.display = "none";
+
+          if (elements.balanceHistoryResults)
+            elements.balanceHistoryResults.style.display = "block";
+          txOutputElement.style.display = "none";
+
+          txOutputElement.innerHTML = "";
+
+          const isClickEvent =
+            typeof event !== "undefined" && event && event.type === "click";
+
+          if (isClickEvent) {
+            if (elements.balanceSection)
+              elements.balanceSection.style.display = "none";
+            if (elements.transactionSection)
+              elements.transactionSection.style.display = "none";
+          }
+        } else if (type === "transaction") {
+          const elements = {
+            balanceHistorySearch: document.getElementById(
+              "balanceHistorySearch"
+            ),
+            transactionSearch: document.getElementById("transactionSearch"),
+            balanceHistoryResults: document.getElementById(
+              "balanceHistoryResults"
+            ),
+            balanceSection: document.getElementById("balanceSection"),
+            transactionSection: document.getElementById("transactionSection"),
+            txHash: document.getElementById("txHash"),
+          };
+
+          if (elements.balanceHistorySearch)
+            elements.balanceHistorySearch.style.display = "none";
+          if (elements.transactionSearch)
+            elements.transactionSearch.style.display = "block";
+
+          if (elements.balanceHistoryResults)
+            elements.balanceHistoryResults.style.display = "none";
+          txOutputElement.style.display = "block";
+
+          if (elements.balanceSection)
+            elements.balanceSection.style.display = "none";
+          if (elements.transactionSection)
+            elements.transactionSection.style.display = "none";
+          const isClickEvent =
+            typeof event !== "undefined" && event && event.type === "click";
+          if (isClickEvent || !document.getElementById("txHash").value) {
+            setTimeout(() => {
+              if (elements.txHash) elements.txHash.focus();
+            }, 100);
+          }
+        }
+
+        const balanceHistorySearch = document.getElementById(
+          "balanceHistorySearch"
+        );
+        const transactionSearch = document.getElementById("transactionSearch");
+        const balanceHistoryResults = document.getElementById(
+          "balanceHistoryResults"
+        );
+      }
+
+      document.addEventListener("keydown", function (event) {
+        if (
+          event.key === "Enter" &&
+          document.getElementById("txHash") === document.activeElement
+        ) {
+          event.preventDefault();
+
+          const transactionRadio = document.querySelector(
+            'input[name="searchType"][value="transaction"]'
+          );
+          if (transactionRadio) {
+            transactionRadio.checked = true;
+            toggleSearchType("transaction");
+          }
+
+          searchTransactionDetails();
+        }
+        if (
+          event.key === "Enter" &&
+          document.getElementById("balanceAddress") === document.activeElement
+        ) {
+          checkDogeBalance();
+          event.preventDefault();
+        }
+        if (
+          event.key === "Enter" &&
+          document.getElementById("transactionAddr") === document.activeElement
+        ) {
+          loadTransactions();
+          event.preventDefault();
+        }
+      });
+
+      function updateSenderAddress() {
+        const privateKey = document.getElementById("privateKey").value.trim();
+        const senderAddressField = document.getElementById("senderAddress");
+
+        if (!privateKey) {
+          senderAddressField.value = "";
+          return;
+        }
+
+        try {
+          const derivedAddress =
+            dogeCrypto.generateMultiChain(privateKey).DOGE.address;
+          senderAddressField.value = derivedAddress;
+        } catch (error) {
+          console.error(
+            "[WALLET] Error deriving address from private key:",
+            error
+          );
+          senderAddressField.value = "Invalid private key format";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const confirmationPopup = document.getElementById("confirmationPopup");
+        if (confirmationPopup) {
+          confirmationPopup.addEventListener("click", function (event) {
+            if (event.target === confirmationPopup) {
+              closeConfirmationPopup();
+            }
+          });
+        }
+
+        // Ensure txOutput element exists
+        if (!document.getElementById("txOutput")) {
+          const txOutputElement = document.createElement("div");
+          txOutputElement.id = "txOutput";
+          txOutputElement.className = "transaction-result";
+          document
+            .getElementById("transactionsPage")
+            .appendChild(txOutputElement);
+        }
+
+        initializeTheme();
+
+        // Show loading screen
+        const loadingScreen = document.createElement("div");
+        loadingScreen.className = "loading-screen";
+        loadingScreen.innerHTML = `
+          <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3>Loading Dogecoin Wallet</h3>
+          </div>
+        `;
+        document.body.appendChild(loadingScreen);
+
+        // Create sidebar overlay for mobile
+        const overlay = document.createElement("div");
+        overlay.id = "sidebarOverlay";
+        overlay.className = "sidebar-overlay";
+        overlay.addEventListener("click", () => {
+          document.getElementById("sidebar").classList.remove("active");
+          overlay.classList.remove("active");
+        });
+        document.body.appendChild(overlay);
+
+        setTimeout(() => {
+          loadingScreen.style.opacity = "0";
+          setTimeout(() => {
+            loadingScreen.remove();
+            notify("Welcome to RanchiMall Dogecoin Wallet", "success");
+
+            handleSharedLinks();
+
+            if (!window.location.hash) {
+              showPage("walletPage");
+            }
+          }, 500);
+        }, 1500);
+      });
+    </script>
+  </body>
+</html>
