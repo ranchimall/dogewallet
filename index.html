@@ -221,9 +221,7 @@
                 </button>
               </div>
               <small class="form-text">
-                Enter a private key in WIF format for any supported blockchain
-                (DOGE, BTC, FLO, LTC). All equivalent blockchain addresses will
-                be recovered.
+                Enter a private key (DOGE, BTC, FLO, LTC). 
               </small>
             </div>
 
@@ -1141,103 +1139,103 @@
 
         return true;
       }
+  function translateAddress() {
+    const wif = document.getElementById("translateWIF").value.trim();
+    if (!wif) {
+      notify("Please enter a private key", "error");
+      return;
+    }
 
-      function translateAddress() {
-        const wif = document.getElementById("translateWIF").value.trim();
-        if (!wif) {
-          notify("Please enter a private key", "error");
-          return;
-        }
+    // Validate private key format before attempting to use it
+    if (!isValidPrivateKeyFormat(wif)) {
+      document.getElementById("translateResult").innerHTML = createErrorUI(
+        "Invalid Private Key Format",
+        "The text entered doesn't appear to be a valid private key for DOGE, BTC, FLO, or LTC.<br>Please check your input and try again."
+      );
+      notify("Invalid private key format", "error");
+      return;
+    }
 
-        // Validate private key format before attempting to use it
-        if (!isValidPrivateKeyFormat(wif)) {
-          document.getElementById("translateResult").innerHTML = createErrorUI(
-            "Invalid Private Key Format",
-            "The text entered doesn't appear to be a valid private key for DOGE, BTC, FLO, or LTC.<br>Please check your input and try again."
-          );
-          notify("Invalid private key format", "error");
-          return;
-        }
+    setButtonLoading("recoverBtn", true);
 
-        setButtonLoading("recoverBtn", true);
+    try {
+      const result = dogeCrypto.generateMultiChain(wif);
 
-        try {
-          const result = dogeCrypto.generateMultiChain(wif);
+      let formattedResult = `
+        <div class="wallet-generated-success">
+          <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="success-message">
+            <h3>Addresses Recovered Successfully!</h3>
+            <p>All blockchain addresses have been recovered from your private key.</p>
+          </div>
+        </div>`;
 
-          let formattedResult = `
-            <div class="wallet-generated-success">
-              <div class="success-icon">
-                <i class="fas fa-check-circle"></i>
+      for (const chain of ["DOGE", "FLO", "BTC", "LTC"]) {
+        if (result[chain]) {
+          
+          const badgeClass = chain === "DOGE" ? "PRIMARY" : "SECONDARY";
+          const badgeStyle = chain === "DOGE" ? "primary" : "secondary";
+          
+          formattedResult += `
+            <div class="blockchain-section">
+              <div class="blockchain-header">
+                <h4><i class="fas fa-coins"></i> ${chain}</h4>
+                <div class="blockchain-badge ${badgeStyle}">${badgeClass}</div>
               </div>
-              <div class="success-message">
-                <h3>Addresses Recovered Successfully!</h3>
-                <p>All blockchain addresses have been recovered from your private key.</p>
+              <div class="detail-row">
+                <label><i class="fas fa-map-marker-alt"></i> ${chain} Address</label>
+                <div class="value-container">
+                  <code>${result[chain].address}</code>
+                  <button class="btn-icon" onclick="navigator.clipboard.writeText('${result[chain].address}').then(()=>notify('${chain} address copied','success'))" title="Copy ${chain} Address">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                </div>
               </div>
-            </div>`;
-
-          for (const chain of ["DOGE", "FLO", "BTC", "LTC"]) {
-            if (result[chain]) {
-              formattedResult += `
-                <div class="blockchain-section">
-                  <div class="blockchain-header">
-                    <h4><i class="fas fa-coins"></i> ${chain}</h4>
-                    <div class="blockchain-badge">PRIMARY</div>
-                  </div>
-                  <div class="detail-row">
-                    <label><i class="fas fa-map-marker-alt"></i> ${chain} Address</label>
-                    <div class="value-container">
-                      <code>${result[chain].address}</code>
-                      <button class="btn-icon" onclick="navigator.clipboard.writeText('${result[chain].address}').then(()=>notify('${chain} address copied','success'))" title="Copy ${chain} Address">
-                        <i class="fas fa-copy"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="detail-row">
-                    <label><i class="fas fa-key"></i> ${chain} Private Key</label>
-                    <div class="value-container">
-                      <code>${result[chain].privateKey}</code>
-                      <button class="btn-icon" onclick="navigator.clipboard.writeText('${result[chain].privateKey}').then(()=>notify('Private key copied','success'))" title="Copy Private Key">
-                        <i class="fas fa-copy"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>`;
-            }
-          }
-
-          document.getElementById("translateResult").innerHTML =
-            formattedResult;
-
-          storedTranslateResults.recoverTranslate = formattedResult;
-          notify("Addresses recovered successfully!", "success");
-        } catch (err) {
-          console.error("Recovery error:", err);
-
-          let errorMessage = "Invalid private key or format not supported.";
-          if (err.message && err.message.includes("Invalid")) {
-            errorMessage = err.message;
-          }
-
-          document.getElementById("translateResult").innerHTML = `
-            <div class="error-state">
-              <div class="error-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-              </div>
-              <div class="error-message">
-                <h3>Recovery Failed</h3>
-                <p>${errorMessage}</p>
-                <p>Please ensure you've entered a valid private key for DOGE, BTC, FLO, or LTC.</p>
-                <button class="btn btn-secondary" onclick="translateAddress()">
-                  <i class="fas fa-redo"></i> Try Again
-                </button>
+              <div class="detail-row">
+                <label><i class="fas fa-key"></i> ${chain} Private Key</label>
+                <div class="value-container">
+                  <code>${result[chain].privateKey}</code>
+                  <button class="btn-icon" onclick="navigator.clipboard.writeText('${result[chain].privateKey}').then(()=>notify('Private key copied','success'))" title="Copy Private Key">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                </div>
               </div>
             </div>`;
-          notify("Failed to recover addresses: " + errorMessage, "error");
-        } finally {
-          setButtonLoading("recoverBtn", false);
         }
       }
 
+      document.getElementById("translateResult").innerHTML = formattedResult;
+      storedTranslateResults.recoverTranslate = formattedResult;
+      notify("Addresses recovered successfully!", "success");
+    } catch (err) {
+      console.error("Recovery error:", err);
+
+      let errorMessage = "Invalid private key or format not supported.";
+      if (err.message && err.message.includes("Invalid")) {
+        errorMessage = err.message;
+      }
+
+      document.getElementById("translateResult").innerHTML = `
+        <div class="error-state">
+          <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="error-message">
+            <h3>Recovery Failed</h3>
+            <p>${errorMessage}</p>
+            <p>Please ensure you've entered a valid private key for DOGE, BTC, FLO, or LTC.</p>
+            <button class="btn btn-secondary" onclick="translateAddress()">
+              <i class="fas fa-redo"></i> Try Again
+            </button>
+          </div>
+        </div>`;
+      notify("Failed to recover addresses: " + errorMessage, "error");
+    } finally {
+      setButtonLoading("recoverBtn", false);
+    }
+  }
       function translateDirectAddress() {
         const address = document
           .getElementById("addressToTranslate")
