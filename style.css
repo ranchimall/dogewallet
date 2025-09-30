@@ -3686,3 +3686,21 @@ h4 {
     margin-bottom: 0.25rem;
   }
 }
+
+.txid-link {
+  color: white;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.txid-link:hover {
+  color: var(--primary-color-dark, #3b82f6);
+  text-decoration: underline;
+}
+
+.tx-detail-value .txid-link {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}
