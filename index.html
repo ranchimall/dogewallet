@@ -1699,9 +1699,7 @@
                     <div class="tx-field">
                       <div class="tx-label">Tx:</div>
                       <div class="tx-value tx-hash-value">
-                        ${tx.txid.substring(0, 12)}...${tx.txid.substring(
-                tx.txid.length - 12
-              )}
+                       <a href="#" class="txid-link" onclick="viewTransactionDetails('${tx.txid}'); return false;">${tx.txid.substring(0, 12)}...${tx.txid.substring(tx.txid.length - 12)}</a>
                       </div>
                     </div>
                   </div>
@@ -2094,9 +2092,6 @@
                       <div class="tx-detail-label"><i class="fas fa-coins"></i> Amount</div>
                       <div class="tx-detail-value">
                         <span>${sendAmount} DOGE</span>
-                        <button class="copy-small" onclick="navigator.clipboard.writeText('${sendAmount}').then(()=>notify('Amount copied','success'))" title="Copy Amount">
-                          <i class="fas fa-copy"></i>
-                        </button>
                       </div>
                     </div>
                     <div class="tx-detail-item">
@@ -2120,7 +2115,7 @@
                     <div class="tx-detail-item">
                       <div class="tx-detail-label"><i class="fas fa-hashtag"></i> Transaction ID</div>
                       <div class="tx-detail-value">
-                        <span>${txid}</span>
+                        <span><a href="#" class="txid-link" onclick="viewTransactionDetails('${txid}'); return false;">${txid}</a></span>
                         <button class="copy-small" onclick="navigator.clipboard.writeText('${txid}').then(()=>notify('Transaction ID copied','success'))" title="Copy Transaction ID">
                           <i class="fas fa-copy"></i>
                         </button>
@@ -2789,6 +2784,22 @@
           }, 500);
         }, 1500);
       });
+  function viewTransactionDetails(txid) {
+  const transactionRadio = document.querySelector('input[name="searchType"][value="transaction"]');
+  if (transactionRadio) {
+    transactionRadio.checked = true;
+    toggleSearchType("transaction");
+  }
+  
+  // Show the transactions page
+  showPage("transactionsPage");
+  
+  // Set the txid in the search input
+  document.getElementById("txHash").value = txid;
+  
+  // Search for the transaction
+  searchTransactionDetails();
+}
     </script>
   </body>
 </html>
