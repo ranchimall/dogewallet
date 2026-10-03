@@ -366,14 +366,12 @@
             console.log("Signing transaction...");
             const signedTx = await rpc("signrawtransaction", [
               rawTx,
-              [
-                {
-                  txid: utxos[0].txid,
-                  vout: utxos[0].vout,
-                  scriptPubKey: utxos[0].scriptPubKey,
-                  amount: utxos[0].value.toFixed(8),
-                },
-              ],
+              utxos.map((utxo) => ({
+                txid: utxo.txid,
+                vout: utxo.vout,
+                scriptPubKey: utxo.scriptPubKey,
+                amount: utxo.value.toFixed(8),
+              })),
               [privKey],
             ]);
 

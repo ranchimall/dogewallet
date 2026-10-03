@@ -28,6 +28,16 @@
     <script src="doge/dogeCrypto.js"></script>
     <script src="doge/dogeBlockchainAPI.js"></script>
     <script src="doge/dogeSearchDB.js"></script>
+    <script src="https://unpkg.com/@solana/web3.js@1.99.0/lib/index.iife.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ethereumjs/browser-builds/dist/ethereumjs-tx/ethereumjs-tx-1.3.3.min.js"></script>
+    <script>
+      window.Buffer = window.Buffer || ethereumjs.Buffer.Buffer;
+    </script>
+    <script src="doge/floSolana.js"></script>
+    <script src="doge/dogeSwap.js"></script>
+    <style>
+     
+    </style>
   </head>
   <body>
     <!-- Confirmation Popup -->
@@ -77,6 +87,40 @@
       </div>
     </div>
 
+    <!-- Swap Confirmation Popup (DOGE -> SOL -> NAVIERSTOK) -->
+    <div id="swapConfirmPopup" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="swapConfirmTitle">Confirm Swap</h3>
+          <span class="modal-close" onclick="dogeSwap.closeSwapConfirm()"
+            >&times;</span
+          >
+        </div>
+        <div class="modal-body">
+          <div class="confirm-details" id="swapConfirmRows"></div>
+          <div class="detail-group warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+              Rates move during bridging. Only the DOGE deposit is
+              irreversible once broadcast; the SOL swap previews again before
+              running.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn btn-secondary"
+            onclick="dogeSwap.closeSwapConfirm()"
+          >
+            Cancel
+          </button>
+          <button class="btn btn-primary" id="swapConfirmBtn">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="notification-drawer"></div>
     <header class="header">
       <div class="header-content">
@@ -114,6 +158,14 @@
           <li>
             <a href="#" onclick="showPage('sendPage')" class="nav-link"
               ><i class="fas fa-paper-plane"></i>Send</a
+            >
+          </li>
+          <li>
+            <a
+              href="#"
+              onclick="showPage('swapPage'); dogeSwap.checkResume()"
+              class="nav-link"
+              ><i class="fas fa-shuffle"></i>Swap Token</a
             >
           </li>
           <li>
@@ -634,6 +686,229 @@
             <div id="sendResult" class="output"></div>
           </div>
         </div>
+
+        <!-- Swap Page: DOGE -> SOL (1Click) -> NAVIERSTOK (Jupiter) -->
+        <div id="swapPage" class="page hidden">
+          <div class="page-header">
+            <h2><i class="fas fa-shuffle"></i> Buy Token</h2>
+            <p>Buy NAVIERSTOK with DOGE. One key drives both chains.</p>
+          </div>
+
+          <div class="card">
+            <div id="swapResume"></div>
+
+            <div class="form-group">
+              <label><i class="fas fa-key"></i> Private Key:</label>
+              <div class="input-with-actions">
+                <input
+                  id="swapWif"
+                  class="form-input"
+                  type="password"
+                  placeholder="Your FLO or DOGE private key (stays in this browser)"
+                  oninput="dogeSwap.onWifInput()"
+                />
+                <button
+                  type="button"
+                  class="input-action-btn password-toggle"
+                  onclick="togglePasswordVisibility('swapWif')"
+                  title="Show/Hide Password"
+                >
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button
+                  type="button"
+                  class="input-action-btn clear-btn"
+                  onclick="clearInput('swapWif'); dogeSwap.onWifInput()"
+                  title="Clear"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div id="swapDerivedRow" style="display: none">
+                <small class="form-text">
+                  DOGE: <code id="swapDogeAddr"></code><br />
+                  Balance: <code id="swapDogeBal">…</code><br />
+                  SOL: <code id="swapSolAddr"></code> (<code id="swapSolBal">…</code>)<br />
+                  NAVIERSTOK: <code id="swapNavBal">…</code>
+                </small>
+              </div>
+            </div>
+
+            <div class="swap-dir-tabs">
+              <button
+                type="button"
+                id="swapDirBuy"
+                class="dir-tab active"
+                onclick="dogeSwap.showDir('buy')"
+              >
+                Buy NAVIERSTOK
+              </button>
+              <button
+                type="button"
+                id="swapDirSell"
+                class="dir-tab"
+                onclick="dogeSwap.showDir('sell')"
+              >
+                Sell NAVIERSTOK
+              </button>
+            </div>
+
+            <div id="buyPanel">
+
+            <div class="form-group">
+              <label><i class="fas fa-coins"></i> Token to Buy:</label>
+              <small class="form-text">NAVIERSTOK (Solana)</small>
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-coins"></i> Amount to Spend (DOGE):</label>
+              <div class="input-with-actions">
+                <input
+                  id="swapAmount"
+                  class="form-input"
+                  type="number"
+                  step="0.00000001"
+                  min="0"
+                  placeholder="Amount to spend (DOGE)"
+                  oninput="dogeSwap.onPreview()"
+                />
+                <button
+                  type="button"
+                  class="input-action-btn clear-btn"
+                  onclick="clearInput('swapAmount'); dogeSwap.onPreview()"
+                  title="Clear"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div id="swapPreview">
+                <small class="form-text">Min ~20 DOGE + 0.09 DOGE network fee</small>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label
+                ><i class="fas fa-sliders"></i> Slippage (%):</label
+              >
+              <div class="input-with-actions">
+                <input
+                  id="swapSlippage"
+                  class="form-input"
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  value="15"
+                />
+                <button
+                  type="button"
+                  class="input-action-btn clear-btn"
+                  onclick="clearInput('swapSlippage')"
+                  title="Clear"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <button
+              class="btn btn-primary btn-block"
+              onclick="dogeSwap.onStartSwap()"
+              id="swapBtn"
+            >
+              <span class="btn-text"
+                ><i class="fas fa-shuffle"></i> Buy Token</span
+              >
+              <span class="btn-loading" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Working...
+              </span>
+            </button>
+
+            <div class="swap-steps">
+              <div class="swap-step" id="swapStep_deposit">1. Deposit sent</div>
+              <div class="swap-step" id="swapStep_bridging">2. Bridging</div>
+              <div class="swap-step" id="swapStep_received">3. SOL received</div>
+              <div class="swap-step" id="swapStep_swapping">4. Swapping</div>
+              <div class="swap-step" id="swapStep_done">5. Done</div>
+            </div>
+
+            <div id="swapResult" class="output"></div>
+            </div>
+
+            <div id="sellPanel" style="display: none">
+              <div class="form-group">
+                <label><i class="fas fa-coins"></i> Amount to Sell (NAVIERSTOK):</label>
+                <div class="input-with-actions">
+                  <input
+                    id="sellAmount"
+                    class="form-input"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="Amount to sell (NAVIERSTOK)"
+                    oninput="dogeSwap.onSellPreview()"
+                  />
+                  <button
+                    type="button"
+                    class="input-action-btn clear-btn"
+                    onclick="clearInput('sellAmount'); dogeSwap.onSellPreview()"
+                    title="Clear"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div id="sellPreview">
+                  <small class="form-text">Enter amount for a quote. Needs SOL for fees.</small>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label
+                  ><i class="fas fa-sliders"></i> Slippage (%):</label
+                >
+                <div class="input-with-actions">
+                  <input
+                    id="sellSlippage"
+                    class="form-input"
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    value="15"
+                  />
+                  <button
+                    type="button"
+                    class="input-action-btn clear-btn"
+                    onclick="clearInput('sellSlippage')"
+                    title="Clear"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary btn-block"
+                onclick="dogeSwap.onStartSell()"
+                id="sellBtn"
+              >
+                <span class="btn-text"
+                  ><i class="fas fa-shuffle"></i> Sell NAVIERSTOK for DOGE</span
+                >
+                <span class="btn-loading" style="display: none">
+                  <i class="fas fa-spinner fa-spin"></i> Working...
+                </span>
+              </button>
+
+              <div class="swap-steps">
+                <div class="swap-step" id="sellStep_swap">1. Swapped to SOL</div>
+                <div class="swap-step" id="sellStep_deposit">2. Deposit sent</div>
+                <div class="swap-step" id="sellStep_bridging">3. Bridging</div>
+                <div class="swap-step" id="sellStep_done">4. DOGE received</div>
+              </div>
+
+              <div id="sellResult" class="output"></div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
 
@@ -652,6 +927,13 @@
         data-page="sendPage"
       >
         <i class="fas fa-paper-plane"></i><span>Send</span>
+      </button>
+      <button
+        onclick="showPage('swapPage'); dogeSwap.checkResume()"
+        class="nav-btn"
+        data-page="swapPage"
+      >
+        <i class="fas fa-shuffle"></i><span>Buy</span>
       </button>
       <button
         onclick="showPage('transactionsPage')"
