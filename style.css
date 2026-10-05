@@ -3785,31 +3785,3 @@ h4 {
 .tx-details-card a:active {
   color: #fff;
 }
-
-#swapDerivedRow code {
-  word-break: break-all;
-}
-
-@media (max-width: 480px) {
-  .swap-step {
-    min-width: 64px;
-    font-size: 11px;
-    padding: 6px 2px;
-  }
-  .swap-steps {
-    gap: 4px;
-  }
-  .dir-tab {
-    padding: 8px 4px;
-    font-size: 14px;
-  }
-  .nav-btn {
-    min-width: 0;
-    flex: 1;
-    padding: 0.5rem 0.25rem;
-    font-size: 0.7rem;
-  }
-  .nav-btn i {
-    font-size: 1.1rem;
-  }
-}
