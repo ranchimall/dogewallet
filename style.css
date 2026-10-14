@@ -3785,3 +3785,25 @@ h4 {
 .tx-details-card a:active {
   color: #fff;
 }
+
+@media (max-width: 480px) {
+  .nav-btn {
+    min-width: 0;
+    flex: 1;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.7rem;
+  }
+  .nav-btn i {
+    font-size: 1.1rem;
+  }
+  .dir-tab {
+    white-space: nowrap;
+    font-size: 13px;
+    padding: 8px 4px;
+  }
+  label > i.fas:first-child,
+  label > i.far:first-child,
+  label > i.fab:first-child {
+    margin-right: 6px;
+  }
+}
